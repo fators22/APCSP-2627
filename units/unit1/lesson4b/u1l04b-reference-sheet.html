@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Unit 1 Lesson 4B — Reference Sheet</title>
+<style>
+  @page { size: letter portrait; margin: 0.5in; }
+  * { box-sizing: border-box; }
+  body { font-family: "IBM Plex Sans", system-ui, sans-serif; color: #16233A;
+         max-width: 7.5in; margin: 0 auto; font-size: 10.5pt; line-height: 1.42; }
+  header { border-bottom: 3px solid #16233A; padding-bottom: 6px; margin-bottom: 12px;
+           display: flex; justify-content: space-between; align-items: baseline; }
+  h1 { font-size: 15pt; margin: 0; }
+  .sub { font-size: 9pt; color: #5B6B82; }
+  h2 { font-size: 11.5pt; margin: 15px 0 6px; }
+  code { font-family: "IBM Plex Mono", monospace; font-size: 9.6pt;
+         background: #EEF2F7; padding: 1px 4px; border-radius: 3px; }
+  pre { background: #16233A; color: #EAF0F7; padding: 10px 13px; border-radius: 5px;
+        font-family: "IBM Plex Mono", monospace; font-size: 9.4pt; line-height: 1.5; margin: 6px 0; }
+  pre .c { color: #7E9C6E; }
+  table { width: 100%; border-collapse: collapse; font-size: 9.6pt; margin: 6px 0; }
+  th { background: #E8EDF4; text-align: left; padding: 6px 9px; font-size: 8.6pt;
+       text-transform: uppercase; letter-spacing: .07em; }
+  td { padding: 5px 9px; border-bottom: 1px solid #DCE3EC; }
+  td.mono { font-family: "IBM Plex Mono", monospace; }
+  .cols { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  .box { border-left: 4px solid #E8A33D; background: #FFF8EA; padding: 9px 13px;
+         border-radius: 0 5px 5px 0; font-size: 9.6pt; margin: 8px 0; }
+  .box.warn { border-left-color: #ED225D; background: #FFF0F3; }
+  .fig { border: 1.5px solid #B9C6D6; border-radius: 6px; padding: 8px; text-align: center;
+         background: #FBFCFE; }
+  footer { margin-top: 14px; padding-top: 8px; border-top: 1px solid #DCE3EC;
+           font-size: 8.6pt; color: #5B6B82; }
+  @media screen { body { padding: 26px 18px; } }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>A Point You Do Not Control</h1>
+  <div class="sub">AP CSP &middot; Unit 1, Lesson 4B &middot; Reference Sheet</div>
+</header>
+
+<h2>Writing a variable</h2>
+<pre>let headY = 190;
+<span class="c">//  \__/   \___/   \_/
+//  make   the     what goes
+//  a name name    in it</span></pre>
+
+<div class="cols" style="margin-top:8px;">
+  <div>
+    <p style="margin:0 0 4px;"><strong>Use one when</strong></p>
+    <ul style="margin:0; padding-left:17px;">
+      <li>the number has to <strong>change</strong> while the sketch runs</li>
+      <li>the same number appears in <strong>several places</strong></li>
+    </ul>
+  </div>
+  <div>
+    <p style="margin:0 0 4px;"><strong>Where it goes</strong></p>
+    <ul style="margin:0; padding-left:17px;">
+      <li><code>let</code> at the <strong>top</strong>, outside <code>draw()</code></li>
+      <li>changing it goes <strong>inside</strong> <code>draw()</code></li>
+    </ul>
+  </div>
+</div>
+
+<h2>mouseX and mouseY</h2>
+<div class="cols">
+  <div>
+    <p style="margin:0 0 6px;">Two variables p5 already made. They hold where the
+      cursor is <strong>right now</strong>, updated before every frame.</p>
+    <pre>circle(mouseX, mouseY, 40);</pre>
+    <div class="box">
+      You only <strong>read</strong> them. p5 writes them. A variable you made
+      and one p5 made are the same idea &mdash; a name for a number &mdash; they
+      just have different owners.
+    </div>
+  </div>
+  <div class="fig">
+    <svg viewBox="-6 -6 212 212" style="width:100%; max-width:190px;">
+      <rect x="0" y="0" width="200" height="200" fill="#F4F7FA"/>
+      <line x1="134" y1="0" x2="134" y2="200" stroke="#C8891A" stroke-width="1.5" stroke-dasharray="4 4"/>
+      <line x1="0" y1="76" x2="200" y2="76" stroke="#C8891A" stroke-width="1.5" stroke-dasharray="4 4"/>
+      <path d="M128 70 L146 86 L137 87 L134 96 Z" fill="#16233A"/>
+      <text x="134" y="194" font-family="monospace" font-size="12" fill="#C8891A"
+            text-anchor="middle">mouseX</text>
+      <text x="6" y="70" font-family="monospace" font-size="12" fill="#C8891A">mouseY</text>
+      <rect x="0" y="0" width="200" height="200" fill="none" stroke="#8FA3BC" stroke-width="2.5"/>
+    </svg>
+  </div>
+</div>
+
+<h2>Moving a whole object</h2>
+<p style="margin:0 0 6px;">Pick <strong>one point</strong>. Write every other part
+  as a distance from it &mdash; left or right, up or down.</p>
+
+<div class="cols">
+  <div>
+    <pre>rect(mouseX,      mouseY,      60, 24);
+rect(mouseX - 48, mouseY - 14, 40,  6);
+rect(mouseX + 48, mouseY - 14, 40,  6);
+circle(mouseX,    mouseY + 18, 16);</pre>
+    <table style="margin-top:8px;">
+      <tr><th>Part</th><th>Across</th><th>Down</th></tr>
+      <tr><td>body</td><td class="mono">mouseX</td><td class="mono">mouseY</td></tr>
+      <tr><td>left arm</td><td class="mono">&minus; 48</td><td class="mono">&minus; 14</td></tr>
+      <tr><td>right arm</td><td class="mono">+ 48</td><td class="mono">&minus; 14</td></tr>
+      <tr><td>camera</td><td class="mono">same</td><td class="mono">+ 18</td></tr>
+    </table>
+  </div>
+  <div class="fig">
+    <svg viewBox="-6 -6 212 212" style="width:100%; max-width:200px;">
+      <rect x="0" y="0" width="200" height="200" fill="#F4F7FA"/>
+      <g transform="translate(100, 100) scale(0.62)">
+        <rect x="-68" y="-18" width="40" height="6" fill="#8894A8"/>
+        <rect x="28" y="-18" width="40" height="6" fill="#8894A8"/>
+        <ellipse cx="-68" cy="-18" rx="28" ry="4" fill="#5AA9E6"/>
+        <ellipse cx="68" cy="-18" rx="28" ry="4" fill="#5AA9E6"/>
+        <rect x="-30" y="-12" width="60" height="24" rx="3" fill="#BEC8D7"/>
+        <circle cx="0" cy="18" r="8" fill="#E04A4A"/>
+      </g>
+      <circle cx="100" cy="100" r="5" fill="#ED225D"/>
+      <line x1="100" y1="100" x2="58" y2="100" stroke="#C8891A" stroke-width="2"/>
+      <text x="46" y="118" font-family="monospace" font-size="11" fill="#C8891A">-68</text>
+      <line x1="100" y1="100" x2="100" y2="111" stroke="#C8891A" stroke-width="2"/>
+      <text x="106" y="124" font-family="monospace" font-size="11" fill="#C8891A">+18</text>
+      <rect x="0" y="0" width="200" height="200" fill="none" stroke="#8FA3BC" stroke-width="2.5"/>
+    </svg>
+  </div>
+</div>
+
+<div class="box warn">
+  <strong>Only positions move. Sizes never do.</strong>
+  <code>60</code>, <code>24</code>, <code>40</code>, <code>6</code> stay exactly
+  as they are. A drone does not get bigger when it flies right &mdash; if yours
+  stretches sideways, you converted a size by mistake.
+</div>
+
+<div class="box">
+  <strong>Check it in the corners.</strong> Near the middle of the canvas, a part
+  that is twenty pixels off still looks about right. Move the mouse into all four
+  corners &mdash; anything left behind still has a fixed number.
+</div>
+
+<h2>On the AP exam</h2>
+<div class="cols">
+  <div>
+    <p style="margin:0 0 5px;"><strong>What you write</strong></p>
+    <pre>let y = 100;
+y = y + 1;</pre>
+  </div>
+  <div>
+    <p style="margin:0 0 5px;"><strong>Exam Reference Sheet</strong></p>
+    <pre>y &larr; 100
+y &larr; y + 1</pre>
+  </div>
+</div>
+<div class="box">
+  The AP exam is not written in JavaScript. It uses College Board's own notation,
+  and the arrow <code>&larr;</code> means <strong>becomes</strong> &mdash; the same
+  word we use for <code>=</code>. No <code>let</code>, no semicolon.
+</div>
+
+<h2>Where this fits in AP CSP</h2>
+<p style="margin:0 0 6px;"><strong>Big Idea 3 &mdash; Algorithms and Programming</strong>
+  &middot; 30&ndash;35% of the AP Exam</p>
+<table>
+  <tr><th style="width:22%">Code</th><th>Learning objective</th></tr>
+  <tr><td class="mono">3.1</td><td>Variables and Assignments</td></tr>
+  <tr><td class="mono">AAP-1.A</td><td>Represent a value with a variable</td></tr>
+  <tr><td class="mono">AAP-1.B</td><td>Determine the value of a variable as a result of an assignment</td></tr>
+  <tr><td class="mono">3.A</td><td><em>Skill:</em> generalize data sources through variables</td></tr>
+</table>
+<div class="box">
+  <strong>Skill 3.A is what this lesson is really about.</strong> A drone written
+  with <code>mouseX</code> works anywhere on the canvas. One written with
+  <code>200</code> works in exactly one place. That is generalizing.
+</div>
+
+<footer>
+  <strong>Same technique, two sources.</strong> Yesterday the point was a variable
+  you changed yourself. Today it is one p5 changes for you. Either way: pick one
+  point, and measure everything else from it.
+</footer>
+
+</body>
+</html>

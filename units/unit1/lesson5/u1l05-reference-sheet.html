@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Unit 1 Lesson 5 — Reference Sheet</title>
+<style>
+  @page { size: letter portrait; margin: 0.5in; }
+  * { box-sizing: border-box; }
+  body { font-family: "IBM Plex Sans", system-ui, sans-serif; color: #16233A;
+         max-width: 7.5in; margin: 0 auto; font-size: 10.5pt; line-height: 1.42; }
+  header { border-bottom: 3px solid #16233A; padding-bottom: 6px; margin-bottom: 12px;
+           display: flex; justify-content: space-between; align-items: baseline; }
+  h1 { font-size: 15pt; margin: 0; }
+  .sub { font-size: 9pt; color: #5B6B82; }
+  h2 { font-size: 11.5pt; margin: 15px 0 6px; }
+  code { font-family: "IBM Plex Mono", monospace; font-size: 9.6pt;
+         background: #EEF2F7; padding: 1px 4px; border-radius: 3px; }
+  pre { background: #16233A; color: #EAF0F7; padding: 10px 13px; border-radius: 5px;
+        font-family: "IBM Plex Mono", monospace; font-size: 9.4pt; line-height: 1.5; margin: 6px 0; }
+  pre .c { color: #7E9C6E; }
+  table { width: 100%; border-collapse: collapse; font-size: 9.6pt; margin: 6px 0; }
+  th { background: #E8EDF4; text-align: left; padding: 6px 9px; font-size: 8.6pt;
+       text-transform: uppercase; letter-spacing: .07em; }
+  td { padding: 5px 9px; border-bottom: 1px solid #DCE3EC; }
+  td.mono { font-family: "IBM Plex Mono", monospace; }
+  .cols { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  .box { border-left: 4px solid #E8A33D; background: #FFF8EA; padding: 9px 13px;
+         border-radius: 0 5px 5px 0; font-size: 9.6pt; margin: 8px 0; }
+  .box.warn { border-left-color: #ED225D; background: #FFF0F3; }
+  .fig { border: 1.5px solid #B9C6D6; border-radius: 6px; padding: 8px; text-align: center;
+         background: #FBFCFE; }
+  footer { margin-top: 14px; padding-top: 8px; border-top: 1px solid #DCE3EC;
+           font-size: 8.6pt; color: #5B6B82; }
+  @media screen { body { padding: 26px 18px; } }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Words, Color, and Events</h1>
+  <div class="sub">AP CSP &middot; Unit 1, Lesson 5 &middot; Reference Sheet</div>
+</header>
+
+<h2>console.log() &mdash; a window only you can see</h2>
+<div class="cols">
+  <div>
+    <pre>console.log(landerY);
+console.log("got here");</pre>
+    <p style="margin:4px 0 0;">It prints underneath the editor, in the
+      <strong>console</strong> &mdash; not on the canvas. Nobody using your
+      program ever sees it.</p>
+    <div class="box">
+      <strong>The console is for you. The canvas is for the user.</strong>
+      Both put a value where it can be read; only one is meant to be seen by
+      anybody else.
+    </div>
+  </div>
+  <div>
+    <p style="margin:0 0 4px;"><strong>Reach for it when</strong></p>
+    <table>
+      <tr><th style="width:46%">Symptom</th><th>Question it answers</th></tr>
+      <tr><td>nothing moves</td><td>is the variable actually changing?</td></tr>
+      <tr><td>nothing happens</td><td>is this line running at all?</td></tr>
+      <tr><td>it looks wrong</td><td>what is in there, right now?</td></tr>
+    </table>
+    <p style="margin:6px 0 0; font-size:9.4pt;">Inside <code>draw()</code> it
+      prints about sixty times a second, so the console fills fast. That is
+      normal &mdash; clearing it does not stop it.</p>
+  </div>
+</div>
+
+<div class="cols">
+  <div>
+    <h2>text()</h2>
+    <pre>fill(120, 220, 140);
+textSize(24);
+text("ALTITUDE", 20, 40);</pre>
+    <p style="margin:4px 0 0;"><code>text(what, x, y)</code> &mdash; what to show,
+      then where. <code>fill()</code> sets its color, same as any shape.</p>
+    <div class="box warn">
+      <strong>The y is the bottom of the letters</strong>, not the top. At
+      <code>y = 0</code> the words are drawn above the canvas and you see nothing.
+    </div>
+  </div>
+  <div class="fig">
+    <svg viewBox="-6 -6 212 212" style="width:100%; max-width:190px;">
+      <rect x="0" y="0" width="200" height="200" fill="#F4F7FA"/>
+      <g stroke="#DCE3EC" stroke-width="1">
+        <line x1="100" y1="0" x2="100" y2="200"/><line x1="0" y1="100" x2="200" y2="100"/>
+      </g>
+      <text x="14" y="34" fill="#2E8B57" font-size="19" font-family="monospace">ALTITUDE</text>
+      <circle cx="14" cy="34" r="5" fill="#ED225D"/>
+      <text x="24" y="56" fill="#ED225D" font-size="12" font-family="monospace">20, 40</text>
+      <rect x="0" y="0" width="200" height="200" fill="none" stroke="#8FA3BC" stroke-width="2.5"/>
+    </svg>
+  </div>
+</div>
+
+<h2>Strings &mdash; what quotes do</h2>
+<div class="cols">
+  <div>
+    <pre>text(landerY, 20, 40);   <span class="c">// 210</span>
+text("landerY", 20, 80); <span class="c">// landerY</span></pre>
+    <p style="margin:4px 0 0;">Without quotes it is a <strong>variable</strong> and
+      you get what is inside it. With quotes it is a <strong>string</strong> &mdash;
+      just those characters.</p>
+  </div>
+  <div>
+    <p style="margin:0 0 4px;"><strong>Joining them</strong></p>
+    <pre>text("ALT " + landerY, 20, 40);</pre>
+    <p style="margin:4px 0 0;">The <code>+</code> glues a string to a number.
+      That is called <strong>concatenation</strong>.</p>
+  </div>
+</div>
+
+<div class="box">
+  <code>"200"</code> and <code>200</code> are different things. One is characters,
+  one is a number. <code>"200" + 1</code> gives <code>"2001"</code>, because for
+  strings <code>+</code> means <em>join</em>, not <em>add</em>.
+</div>
+
+<h2>Colors in variables</h2>
+<pre>let hullColor = color(214, 222, 235);
+fill(hullColor);</pre>
+<p style="margin:4px 0 0;"><code>color()</code> takes the same numbers as
+  <code>fill()</code> &mdash; three for RGB, one for gray, four with alpha.
+  Storing it means you change the color in one place instead of six.</p>
+
+<h2>Code that runs when something happens</h2>
+<div class="cols">
+  <div>
+    <pre>function keyPressed() {
+  landerY = 40;
+}</pre>
+    <p style="margin:4px 0 0;">runs <strong>once</strong>, when a key goes down</p>
+  </div>
+  <div>
+    <pre>function mousePressed() {
+  speed = 0;
+}</pre>
+    <p style="margin:4px 0 0;">runs <strong>once</strong>, when the mouse is clicked</p>
+  </div>
+</div>
+
+<div class="box warn">
+  <strong>Three ways these silently do nothing.</strong> No error message for any
+  of them.
+  <ul style="margin:4px 0 0; padding-left:17px;">
+    <li>Written <em>inside</em> <code>draw()</code> instead of beside it</li>
+    <li>Spelled <code>keypressed</code> &mdash; the capital P matters</li>
+    <li>Misspelled any other way &mdash; p5 looks for that exact name</li>
+  </ul>
+</div>
+
+<div class="box">
+  <strong>Why one line can reset a whole drawing.</strong> Every part of the
+  rocket is written as an offset from <code>landerY</code>, so putting that
+  variable back puts everything back. A drawing built from fixed numbers could
+  not be reset at all.
+</div>
+
+<h2>On the AP exam</h2>
+<div class="cols">
+  <div>
+    <p style="margin:0 0 5px;"><strong>What you write</strong></p>
+    <pre>text("ALT " + landerY, 20, 40);</pre>
+  </div>
+  <div>
+    <p style="margin:0 0 5px;"><strong>Exam Reference Sheet</strong></p>
+    <pre>DISPLAY(landerY)</pre>
+  </div>
+</div>
+<div class="box">
+  The exam has no canvas, so <code>DISPLAY</code> takes one thing and shows it
+  &mdash; no x, no y. Exam questions often end with a <code>DISPLAY</code> and ask
+  what appears.
+</div>
+
+<h2>Where this fits in AP CSP</h2>
+<table>
+  <tr><th style="width:22%">Code</th><th>Learning objective</th></tr>
+  <tr><td class="mono">3.1</td><td>Variables and Assignments</td></tr>
+  <tr><td class="mono">3.4</td><td>Strings</td></tr>
+  <tr><td class="mono">AAP-1.A</td><td>Represent a value with a variable</td></tr>
+  <tr><td class="mono">AAP-2.D</td><td>Evaluate expressions that manipulate strings</td></tr>
+  <tr><td class="mono">4.B</td><td><em>Skill:</em> determine the result of code segments</td></tr>
+</table>
+
+<footer>
+  <strong>The types so far.</strong> The exam uses numbers, Booleans, lists and
+  strings. You now have <strong>numbers</strong> and <strong>strings</strong>.
+  Booleans arrive next lesson. <code>color</code> is p5's own type, not one of the
+  exam's.<br>
+  <strong>Two ways to see a value.</strong> <code>console.log()</code> for
+  yourself while you are working; <code>text()</code> for whoever uses the
+  program.
+</footer>
+
+</body>
+</html>

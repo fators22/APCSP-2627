@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>AP Computer Science Principles 2026–27</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Lilita+One&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+  <script src="https://cdn.jsdelivr.net/npm/p5@1.9.4/lib/p5.min.js"></script>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="wrap">
+    <a class="brand" href="./">AP CSP</a>
+    <nav aria-label="Main">
+      <a href="#this-week">This week</a>
+      <a href="#units">Units</a>
+      <a href="#sketches">Sketches</a>
+      <a href="#create-task">Create Task</a>
+      <a href="#resources">Resources</a>
+    </nav>
+  </div>
+</header>
+
+<div class="hero">
+  <div id="hero-canvas" aria-hidden="true"></div>
+  <div class="hero-text">
+    <div class="wrap">
+      <div class="card">
+        <h1>AP Computer Science Principles</h1>
+        <p>2026–27 · Bergen County School of Technology · Move your mouse over the grid.</p>
+      </div>
+    </div>
+  </div>
+</div>
+<script src="js/hero.js"></script>
+
+<main class="wrap">
+
+  <!-- ===== EDIT WEEKLY ===== -->
+  <section id="this-week">
+    <h2>This week</h2>
+    <div class="panel notice">
+      <div class="date">Week of October 26</div>
+      <ul>
+        <li>Finish the bouncing ball challenge in the p5.js editor.</li>
+        <li>Quiz on variables and conditionals on Thursday.</li>
+        <li>Bring a sketch idea for the Unit 2 mini-project.</li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- ===== UNITS (in teaching order). To open a unit: remove class="locked", tabindex, aria-disabled; set href to units/unitN/; change status ===== -->
+  <section id="units">
+    <h2>Units</h2>
+    <ol class="units">
+      <li><a href="units/unit1/">
+        <span class="num">1</span>
+        <div><div class="title"><h3>Programs and Purpose</h3></div>
+          <span class="desc">The canvas and grid, color, shapes, variables and motion, events, and debugging.</span></div>
+        <span class="status">Done</span>
+      </a></li>
+      <li><a href="units/unit2/">
+        <span class="num">2</span>
+        <div><div class="title"><h3>Decisions, Errors, and Testing</h3></div>
+          <span class="desc">Conditionals, finding and fixing errors, and testing programs.</span></div>
+        <span class="status now">Current</span>
+      </a></li>
+      <li class="locked"><a href="#" tabindex="-1" aria-disabled="true">
+        <span class="num">5</span>
+        <div><div class="title"><h3>Procedures and Parameters</h3></div></div>
+        <span class="status soon">Coming soon</span>
+      </a></li>
+      <li class="locked"><a href="#" tabindex="-1" aria-disabled="true">
+        <span class="num">3</span>
+        <div><div class="title"><h3>Iteration and Algorithms</h3></div></div>
+        <span class="status soon">Coming soon</span>
+      </a></li>
+      <li class="locked"><a href="#" tabindex="-1" aria-disabled="true">
+        <span class="num">4</span>
+        <div><div class="title"><h3>Lists and Data Abstraction</h3></div></div>
+        <span class="status soon">Coming soon</span>
+      </a></li>
+      <li class="locked"><a href="#" tabindex="-1" aria-disabled="true">
+        <span class="num">6</span>
+        <div><div class="title"><h3>Dress Rehearsal</h3></div></div>
+        <span class="status soon">Coming soon</span>
+      </a></li>
+      <li class="locked"><a href="#" tabindex="-1" aria-disabled="true">
+        <span class="num">7</span>
+        <div><div class="title"><h3>AP Create Performance Task</h3></div></div>
+        <span class="status soon">Coming soon</span>
+      </a></li>
+      <li class="locked"><a href="#" tabindex="-1" aria-disabled="true">
+        <span class="num">8</span>
+        <div><div class="title"><h3>Algorithms Revisited</h3></div></div>
+        <span class="status soon">Coming soon</span>
+      </a></li>
+      <li class="locked"><a href="#" tabindex="-1" aria-disabled="true">
+        <span class="num">9</span>
+        <div><div class="title"><h3>Data and Information</h3></div></div>
+        <span class="status soon">Coming soon</span>
+      </a></li>
+      <li class="locked"><a href="#" tabindex="-1" aria-disabled="true">
+        <span class="num">10</span>
+        <div><div class="title"><h3>The Internet</h3></div></div>
+        <span class="status soon">Coming soon</span>
+      </a></li>
+      <li class="locked"><a href="#" tabindex="-1" aria-disabled="true">
+        <span class="num">11</span>
+        <div><div class="title"><h3>Impact of Computing</h3></div></div>
+        <span class="status soon">Coming soon</span>
+      </a></li>
+      <li class="locked"><a href="#" tabindex="-1" aria-disabled="true">
+        <span class="num">12</span>
+        <div><div class="title"><h3>Limits, Efficiency, and Exam Preparation</h3></div></div>
+        <span class="status soon">Coming soon</span>
+      </a></li>
+      <li class="locked"><a href="#" tabindex="-1" aria-disabled="true">
+        <span class="num">+</span>
+        <div><div class="title"><h3>Post-AP Projects: Arduino, Web Dev, AI</h3></div></div>
+        <span class="status soon">Coming soon</span>
+      </a></li>
+    </ol>
+  </section>
+
+  <!-- ===== SKETCHES: copy a .sketch block for each folder in /sketches ===== -->
+  <section id="sketches">
+    <h2>Example sketches</h2>
+    <p class="lead">These run live. Open one in a new tab to see it full size, or find the code in the <a href="https://github.com/fators22/APCSP-2627/tree/main/sketches">sketches folder</a>.</p>
+    <div class="gallery">
+      <article class="sketch">
+        <iframe src="sketches/bouncing-ball/" title="Bouncing ball sketch" loading="lazy"></iframe>
+        <div class="meta">
+          <h3><a href="sketches/bouncing-ball/">Bouncing ball</a></h3>
+          <p>Variables, conditionals, and the draw loop.</p>
+        </div>
+      </article>
+    </div>
+  </section>
+
+  <section id="create-task">
+    <h2>Create Performance Task</h2>
+    <div class="panel">
+      <p class="lead">The Create Task is worth 30% of your AP score. You'll build a program, submit your code and a video, and answer written-response questions on exam day.</p>
+      <p><a href="https://apcentral.collegeboard.org/courses/ap-computer-science-principles/exam">College Board exam and Create Task details</a></p>
+    </div>
+  </section>
+
+  <section id="resources">
+    <h2>Resources</h2>
+    <div class="links">
+      <a href="https://editor.p5js.org/"><strong>p5.js Web Editor</strong><span>Write and run sketches</span></a>
+      <a href="https://p5js.org/reference/"><strong>p5.js Reference</strong><span>Every function, with examples</span></a>
+      <a href="https://myap.collegeboard.org/"><strong>AP Classroom</strong><span>Progress checks and practice</span></a>
+      <a href="https://apcentral.collegeboard.org/courses/ap-computer-science-principles"><strong>AP CSP Course Page</strong><span>Framework and exam reference sheet</span></a>
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  <div class="wrap">Instructor: F. Orsun · Bergen County School of Technology</div>
+</footer>
+
+</body>
+</html>

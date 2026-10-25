@@ -1,0 +1,1273 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AP CSP — Unit 1, Lesson 4B: A Point You Do Not Control</title>
+
+<!--
+  ============================================================================
+  AP CSP LESSON DECK TEMPLATE  —  reveal.js + live p5.js preview
+  Sized for a 16:9 classroom TV. Double-click to open; no server needed.
+  ============================================================================
+
+  KEYS   arrows/space navigate · S speaker notes · F fullscreen · ESC overview
+
+  WHY UMD SCRIPTS, NOT ES MODULES
+    Modules over file:// are blocked by CORS, so a module deck is blank when
+    you double-click it. The classic <script> builds below are not.
+
+  OFFLINE
+    Three CDN links (reveal, p5, fonts) need internet. If school wifi is
+    unreliable, download reveal.js and p5.min.js next to this file and swap
+    the URLs for local paths.
+
+  TWO SLIDE TYPES
+    .walkthrough — read-only code, revealed a few lines at a time. Max 10 lines.
+    .lab         — editable code + live canvas. Max ~15 lines.
+    Copy either <section> to make a new slide.
+
+  FITTING RULES (do not exceed, or content runs off the bottom of the TV)
+    Walkthrough code : 10 lines
+    Lab code         : 15 lines — beyond this the auto-fit drops below 17px
+    Code line length : 44 characters
+  ============================================================================
+-->
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/plugin/highlight/monokai.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=IBM+Plex+Sans:wght@400;600&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet">
+
+<style>
+/* ---------------------------------------------------------------------------
+   DESIGN TOKENS
+   Dark drafting-blue ground for the deck; VS Code Dark+ for code surfaces so
+   the slide looks like the editor students are typing into.
+   --------------------------------------------------------------------------- */
+:root {
+  --ink:       #101A2B;
+  --ink-2:     #18263C;
+  --wire:      #2B3F5F;
+  --grid:      #1E2F47;
+  --chalk:     #EAF0F7;
+  --chalk-dim: #AEC0D8;
+  --signal:    #ED225D;
+  --amber:     #F2B705;
+
+  /* VS Code Dark+ */
+  --vs-bg:      #1E1E1E;
+  --vs-text:    #D4D4D4;
+  --vs-comment: #6A9955;
+  --vs-string:  #CE9178;
+  --vs-keyword: #569CD6;
+  --vs-control: #C586C0;
+  --vs-number:  #B5CEA8;
+  --vs-func:    #DCDCAA;
+  --vs-var:     #9CDCFE;
+
+  --font-display: 'Space Grotesk', system-ui, sans-serif;
+  --font-body:    'IBM Plex Sans', system-ui, sans-serif;
+  --font-mono:    'IBM Plex Mono', 'SFMono-Regular', Consolas, monospace;
+}
+
+/* Signature: the deck is a coordinate grid with the origin marked top-left.
+   Beginners' first hurdle is that y grows downward, so the room looks at that
+   fact all period without being lectured about it. */
+.reveal-viewport {
+  background-color: var(--ink);
+  background-image:
+    linear-gradient(var(--grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+  background-size: 64px 64px;
+}
+.reveal-viewport::before {
+  content: "(0, 0)";
+  position: fixed; top: 12px; left: 16px;
+  font: 600 20px/1 var(--font-mono);
+  color: var(--signal); opacity: .5;
+  letter-spacing: .04em; z-index: 40; pointer-events: none;
+}
+
+.reveal { font-family: var(--font-body); color: var(--chalk); font-size: 34px; }
+.reveal h1, .reveal h2, .reveal h3 {
+  font-family: var(--font-display); font-weight: 700;
+  color: var(--chalk); text-transform: none; letter-spacing: -.02em;
+  margin: 0 0 .3em;
+}
+.reveal h1 { font-size: 2em; line-height: 1.05; }
+.reveal h2 { font-size: 1.45em; }
+.reveal h3 { font-size: 1.05em; }
+.reveal p, .reveal li { line-height: 1.4; }
+.reveal section > ul, .reveal section > ol { font-size: 1.02em; }
+.reveal li { margin-bottom: .3em; }
+.reveal ol, .reveal ul { margin-left: 1em; }
+.reveal strong { color: var(--amber); font-weight: 600; }
+.reveal section { text-align: left; }
+.reveal .slide-number { font-family: var(--font-mono); font-size: 15px; }
+
+.eyebrow {
+  font: 600 1.4em/1 var(--font-mono);
+  color: var(--signal); letter-spacing: .14em; text-transform: uppercase;
+  display: block; margin-bottom: .18em;
+}
+
+/* ---- Walkthrough code: the "read it together" moment, largest text here ---
+   VS Code Dark+ colors override the monokai stylesheet reveal ships with. */
+.reveal pre {
+  width: 100%; margin: 0; box-shadow: none; border-radius: 8px;
+}
+.reveal pre code {
+  font-family: var(--font-mono); font-size: 30px; line-height: 1.45;
+  padding: 20px 24px; max-height: none; border-radius: 8px;
+  background: var(--vs-bg); color: var(--vs-text);
+}
+.reveal pre code .hljs-comment,
+.reveal pre code .hljs-quote            { color: var(--vs-comment); font-style: normal; }
+.reveal pre code .hljs-string           { color: var(--vs-string); }
+.reveal pre code .hljs-number           { color: var(--vs-number); }
+.reveal pre code .hljs-keyword          { color: var(--vs-control); }
+.reveal pre code .hljs-literal,
+.reveal pre code .hljs-built_in         { color: var(--vs-keyword); }
+.reveal pre code .hljs-function .hljs-keyword { color: var(--vs-keyword); }
+.reveal pre code .hljs-title,
+.reveal pre code .hljs-title.function_  { color: var(--vs-func); }
+.reveal pre code .hljs-params,
+.reveal pre code .hljs-variable,
+.reveal pre code .hljs-attr             { color: var(--vs-var); }
+
+/* ---- Lab slide -----------------------------------------------------------
+   Fixed heights. The whole slide budget is 655px of usable vertical space, so
+   these numbers are load-bearing: eyebrow 34 + h3 46 + row 565 = 645.
+   Editor and canvas sit side by side; the callout goes UNDER THE CANVAS,
+   using the dead space a square canvas leaves in a 16:9 column. */
+.lab { display: grid; grid-template-columns: 1.28fr .72fr; gap: 24px; align-items: start; }
+.lab-label {
+  display: block; font: 600 19px/1 var(--font-mono); color: var(--chalk-dim);
+  letter-spacing: .08em; text-transform: uppercase; margin-bottom: 8px;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+
+/* The editor is a transparent textarea stacked on a highlighted layer.
+   Every metric below MUST match between .hl and textarea or the caret drifts
+   away from the glyphs. Change one, change both. */
+.editor { position: relative; height: 440px; }
+.editor .hl,
+.editor textarea {
+  position: absolute; inset: 0; margin: 0;
+  font-family: var(--font-mono); font-size: 26px; line-height: 1.45;
+  padding: 16px 18px; border: 1px solid var(--wire); border-radius: 8px;
+  white-space: pre; overflow: auto; tab-size: 2; letter-spacing: 0;
+  box-sizing: border-box;
+}
+.editor .hl { background: var(--vs-bg); color: var(--vs-text); pointer-events: none; z-index: 1; }
+.editor textarea {
+  background: transparent; color: transparent; caret-color: #FFF;
+  z-index: 2; resize: none; border-color: transparent;
+}
+.editor textarea:focus-visible { outline: 4px solid var(--amber); outline-offset: 3px; }
+
+.c-com { color: var(--vs-comment); }
+.c-str { color: var(--vs-string); }
+.c-kw  { color: var(--vs-keyword); }
+.c-ctl { color: var(--vs-control); }
+.c-num { color: var(--vs-number); }
+.c-fn  { color: var(--vs-func); }
+.c-var { color: var(--vs-var); }
+
+.lab-buttons { margin-top: 12px; display: flex; gap: 12px; align-items: center; }
+.lab button {
+  font-family: var(--font-body); font-size: 22px; font-weight: 600;
+  padding: 10px 22px; border-radius: 6px; border: 1px solid var(--wire);
+  background: var(--ink-2); color: var(--chalk); cursor: pointer;
+}
+.lab button.primary { background: var(--signal); border-color: var(--signal); color: #fff; }
+.lab button:hover { filter: brightness(1.15); }
+.lab button:focus-visible { outline: 4px solid var(--amber); outline-offset: 3px; }
+.lab .hint { font-size: 19px; color: var(--chalk-dim); font-family: var(--font-mono); }
+
+.lab iframe {
+  width: 100%; aspect-ratio: 1 / 1; display: block;
+  background: var(--ink-2);
+  border: 1px solid var(--wire); border-radius: 8px;
+}
+
+/* ---- "Try this" callout -------------------------------------------------- */
+.try {
+  border-left: 6px solid var(--amber); background: rgba(242,183,5,.11);
+  padding: 12px 18px; border-radius: 0 8px 8px 0; font-size: 21px; line-height: 1.35;
+}
+.lab .try { margin-top: 14px; }
+section > .try { margin-top: 20px; font-size: 26px; padding: 16px 24px; }
+.try b { color: var(--amber); font-family: var(--font-mono); font-size: .82em;
+         letter-spacing: .08em; text-transform: uppercase; display: block;
+         margin-bottom: 5px; }
+
+@media (prefers-reduced-motion: reduce) {
+  .reveal .slides section { transition: none !important; }
+}
+</style>
+</head>
+
+<body>
+<div class="reveal">
+<div class="slides">
+
+<!-- ========================= TITLE ========================= -->
+<section>
+  <span class="eyebrow">Unit 1 &middot; Lesson 4B</span>
+  <h1>A point you<br>do not control</h1>
+  <p style="color:var(--chalk-dim); font-size:.86em; margin-top:.6em;">
+    Same technique as yesterday. Different source for the number.
+  </p>
+  <aside class="notes">
+    RUN SHEET (44 min) - runs long, see the cut below
+    0-2    Preview: the drone follows the cursor.
+    2-8    Review: what a variable is, and how you write one.
+    8-11   ASK OUT LOUD: how did the eyes keep up with the head?
+    11-13  Reveal: every part keeps its distance.
+    13-16  ASK: how would you make this follow the mouse? Do not advance.
+    16-19  mouseX and mouseY - a point p5 keeps for you.
+    19-21  OPEN THE STARTER. Everyone has a file.
+    21-24  TOGETHER: the drone body follows the cursor.
+    24-27  TOGETHER: the arms stay behind. Do not fix it yet.
+    27-31  TOGETHER: offsets in both directions.
+    31-33  Objectives.
+    33-39  Finish the drone.
+    39-41  Challenge.
+    41-44  Three questions, exam notation, save and log off.
+    +2     If there is time: two extras at the end, live.
+
+    CUT THE CHALLENGE SLIDE if you are behind - it is for early finishers
+    anyway and they can read it off the starter.
+
+    NOTHING TO TURN IN TODAY.
+
+    THIS IS THE SAME LESSON AS YESTERDAY seen from a new angle: yesterday the
+    point was a variable they changed, today it is one p5 changes. If yesterday
+    landed, this will feel easy - which is the point of running it.
+
+    BEFORE CLASS: push u1l04b-starter.js to the repo and link it in Classroom.
+  </aside>
+</section>
+
+<!-- ========================= PREVIEW ========================= -->
+<section>
+  <span class="eyebrow">By the end of today</span>
+  <h3 style="font-size:1.22em;">This will follow your cursor</h3>
+  <div style="display:grid; grid-template-columns:1fr 1fr; gap:34px; margin-top:10px;">
+    <svg viewBox="-6 -6 412 412" style="width:100%;">
+      <rect x="0" y="0" width="400" height="400" fill="#101A2B"/>
+      <g transform="translate(120, 130)"><rect x="-68" y="-18" width="40" height="6" fill="#8894A8"/><rect x="28" y="-18" width="40" height="6" fill="#8894A8"/><ellipse cx="-68" cy="-18" rx="28" ry="4" fill="#5AA9E6"/><ellipse cx="68" cy="-18" rx="28" ry="4" fill="#5AA9E6"/><rect x="-30" y="-12" width="60" height="24" rx="4" fill="#D6DEEB"/><circle cx="0" cy="18" r="8" fill="#E04A4A"/></g>
+      <path d="M108 118 L136 142 L122 144 L118 158 Z" fill="#EAF0F7" stroke="#101A2B" stroke-width="2"/><rect x="0" y="0" width="400" height="400" fill="none" stroke="#5A7391" stroke-width="3"/>
+    </svg>
+    <svg viewBox="-6 -6 412 412" style="width:100%;">
+      <rect x="0" y="0" width="400" height="400" fill="#101A2B"/>
+      <g transform="translate(280, 270)"><rect x="-68" y="-18" width="40" height="6" fill="#8894A8"/><rect x="28" y="-18" width="40" height="6" fill="#8894A8"/><ellipse cx="-68" cy="-18" rx="28" ry="4" fill="#5AA9E6"/><ellipse cx="68" cy="-18" rx="28" ry="4" fill="#5AA9E6"/><rect x="-30" y="-12" width="60" height="24" rx="4" fill="#D6DEEB"/><circle cx="0" cy="18" r="8" fill="#E04A4A"/></g>
+      <path d="M268 258 L296 282 L282 284 L278 298 Z" fill="#EAF0F7" stroke="#101A2B" stroke-width="2"/><rect x="0" y="0" width="400" height="400" fill="none" stroke="#5A7391" stroke-width="3"/>
+    </svg>
+  </div>
+  <p style="font-size:.9em; margin-top:16px;">Six shapes.
+    <span style="color:var(--chalk-dim)">All of them move together.</span></p>
+  <aside class="notes">
+    TWO MINUTES. If you have the finished sketch, run it and move the mouse -
+    much better than two pictures.
+
+    Do not explain how. "Six shapes, all moving together" and move on.
+  </aside>
+</section>
+
+<!-- ========================= REVIEW ========================= -->
+<section>
+  <span class="eyebrow">Yesterday, in three lines</span>
+  <h3 style="font-size:1.22em;">How you write a variable</h3>
+  <svg viewBox="0 0 1100 200" style="width:100%; max-width:900px; margin-top:8px;">
+    <text x="0" y="52" font-family="monospace" font-size="48" fill="#C586C0">let</text>
+    <text x="110" y="52" font-family="monospace" font-size="48" fill="#9CDCFE">headY</text>
+    <text x="290" y="52" font-family="monospace" font-size="48" fill="#EAF0F7">=</text>
+    <text x="350" y="52" font-family="monospace" font-size="48" fill="#B5CEA8">190</text>
+    <text x="452" y="52" font-family="monospace" font-size="48" fill="#EAF0F7">;</text>
+
+    <path d="M34 70 V104" stroke="#C586C0" stroke-width="3"/>
+    <text x="34" y="134" font-family="monospace" font-size="25" fill="#C586C0"
+          text-anchor="middle">make</text>
+    <text x="34" y="164" font-family="monospace" font-size="25" fill="#C586C0"
+          text-anchor="middle">a name</text>
+
+    <path d="M178 70 V104" stroke="#9CDCFE" stroke-width="3"/>
+    <text x="178" y="134" font-family="monospace" font-size="25" fill="#9CDCFE"
+          text-anchor="middle">the name</text>
+    <text x="178" y="164" font-family="monospace" font-size="25" fill="#9CDCFE"
+          text-anchor="middle">you pick</text>
+
+    <path d="M392 70 V104" stroke="#B5CEA8" stroke-width="3"/>
+    <text x="392" y="134" font-family="monospace" font-size="25" fill="#B5CEA8"
+          text-anchor="middle">what goes</text>
+    <text x="392" y="164" font-family="monospace" font-size="25" fill="#B5CEA8"
+          text-anchor="middle">in it</text>
+  </svg>
+  <div style="display:grid; grid-template-columns:1fr 1fr; gap:36px; margin-top:14px; font-size:.74em;">
+    <div class="fragment">
+      <strong style="color:var(--amber)">Use one when</strong>
+      <ul style="margin:.3em 0 0; padding-left:18px; color:var(--chalk-dim);">
+        <li>the number has to <strong style="color:var(--chalk)">change</strong> while the sketch runs</li>
+        <li>the same number appears in <strong style="color:var(--chalk)">several places</strong></li>
+      </ul>
+    </div>
+    <div class="fragment">
+      <strong style="color:var(--amber)">Where it goes</strong>
+      <ul style="margin:.3em 0 0; padding-left:18px; color:var(--chalk-dim);">
+        <li><code>let</code> at the <strong style="color:var(--chalk)">top</strong>, outside <code>draw()</code></li>
+        <li>changing it goes <strong style="color:var(--chalk)">inside</strong> <code>draw()</code></li>
+      </ul>
+    </div>
+  </div>
+  <aside class="notes">
+    SIX MINUTES. This is review, not new material - but it is worth the time
+    because yesterday moved fast and half of them typed without reading.
+
+    THE THREE PARTS: let makes a name, you pick the name, the number goes in it.
+    Point at each color.
+
+    THE SECOND HALF IS THE PART THEY DO NOT HAVE YET. Ask when you would bother
+    with a variable at all. Two reasons, and the second one is the one they have
+    not met: if the same number shows up in five places, a variable means you
+    change it once. That is what today is about.
+
+    Say the placement rule out loud again: let at the top, changing it inside.
+    Inside draw() the let is created fresh sixty times a second and nothing ever
+    grows.
+  </aside>
+</section>
+
+<!-- ========================= WARM-UP ========================= -->
+<section>
+  <span class="eyebrow">Before we start</span>
+  <h3 style="font-size:1.22em;">The head moved. How did the eyes keep up?</h3>
+  <div style="display:grid; grid-template-columns:1fr 440px; gap:48px; align-items:center; margin-top:8px;">
+    <div>
+      <p style="font-size:.9em; margin:0 0 .5em;">Yesterday's robot. The head is
+        at <code>headY</code>.</p>
+      <div class="try" style="font-size:.84em;">
+        <b>Two questions</b>
+        How is the left eye written?<br>
+        Where is the <strong>bottom edge</strong> of the head?
+      </div>
+    </div>
+    <svg viewBox="-30 -30 460 460" style="width:440px;">
+      <rect x="0" y="0" width="400" height="400" fill="#18263C"/>
+      <rect x="120" y="115" width="160" height="150" rx="4" fill="#BEC8D7"/>
+      <circle cx="165" cy="165" r="17" fill="#4682C8"/>
+      <circle cx="235" cy="165" r="17" fill="#4682C8"/>
+      <ellipse cx="200" cy="232" rx="45" ry="15" fill="#283246"/>
+      <circle cx="320" cy="190" r="9" fill="#ED225D"/>
+      <text x="300" y="226" fill="#ED225D" font-size="24" font-family="monospace"
+            text-anchor="middle">headY</text>
+      <rect x="0" y="0" width="400" height="400" fill="none" stroke="#5A7391" stroke-width="3"/>
+    </svg>
+  </div>
+  <aside class="notes">
+    THREE MINUTES, ASKED OUT LOUD. No boards - the answer is on the next slide.
+
+    THE FIRST QUESTION they wrote yesterday, so it checks whether they wrote it
+    or copied it.
+
+    THE SECOND IS NEW. The head is 150 tall and headY is its center, so the
+    bottom edge is 75 below. Nobody wrote that line yesterday; they have to
+    reason it out.
+
+    Take three or four answers.
+
+    THEY CONVERTED THREE OF THESE THEMSELVES YESTERDAY on the rocket - the
+    window and both legs. So this is not recall of something they watched, it
+    is recall of something they did. Anyone who still answers with a fixed
+    number rather than an offset needs watching today.
+  </aside>
+</section>
+
+<!-- ========================= WARM-UP REVEAL ========================= -->
+<section>
+  <span class="eyebrow">Measured from one point</span>
+  <h3 style="font-size:1.22em;">Every part keeps its distance</h3>
+  <div style="display:grid; grid-template-columns:1fr 440px; gap:48px; align-items:center; margin-top:8px;">
+    <div style="font:600 27px/2.1 var(--font-mono);">
+      <div class="fragment"><span style="color:var(--chalk-dim)">left eye</span>
+        &nbsp;<span style="color:var(--amber)">headY - 25</span></div>
+      <div class="fragment"><span style="color:var(--chalk-dim)">mouth</span>
+        &nbsp;<span style="color:var(--amber)">headY + 42</span></div>
+      <div class="fragment"><span style="color:var(--chalk-dim)">bottom edge</span>
+        &nbsp;<span style="color:var(--amber)">headY + 75</span></div>
+    </div>
+    <svg viewBox="-30 -30 460 460" style="width:440px;">
+      <rect x="0" y="0" width="400" height="400" fill="#18263C"/>
+      <rect x="120" y="115" width="160" height="150" rx="4" fill="#BEC8D7"/>
+      <circle cx="165" cy="165" r="17" fill="#4682C8"/>
+      <circle cx="235" cy="165" r="17" fill="#4682C8"/>
+      <ellipse cx="200" cy="232" rx="45" ry="15" fill="#283246"/>
+      <circle cx="320" cy="190" r="9" fill="#ED225D"/>
+      <line x1="320" y1="190" x2="320" y2="165" stroke="#F2B705" stroke-width="3"/>
+      <text x="334" y="162" fill="#F2B705" font-size="23" font-family="monospace">- 25</text>
+      <line x1="320" y1="190" x2="320" y2="232" stroke="#F2B705" stroke-width="3"/>
+      <text x="334" y="240" fill="#F2B705" font-size="23" font-family="monospace">+ 42</text>
+      <line x1="356" y1="190" x2="356" y2="265" stroke="#78DC8C" stroke-width="3"/>
+      <text x="300" y="292" fill="#78DC8C" font-size="23" font-family="monospace">+ 75</text>
+      <rect x="0" y="0" width="400" height="400" fill="none" stroke="#5A7391" stroke-width="3"/>
+    </svg>
+  </div>
+  <aside class="notes">
+    TWO MINUTES. Three presses.
+
+    THE THIRD ONE IS THE REASONING. The head is 150 tall, headY is the center,
+    so the edges are 75 either side. Nobody was given that number - it comes
+    out of the size.
+
+    THE SENTENCE TO CARRY INTO TODAY: pick one point and measure everything
+    from it. Today the point is one you do not control.
+  </aside>
+</section>
+
+<!-- ========================= ASK ========================= -->
+<section>
+  <span class="eyebrow">Before I tell you</span>
+  <h3 style="font-size:1.22em;">How would you make this follow the cursor?</h3>
+  <div style="display:grid; grid-template-columns:1fr 420px; gap:44px; align-items:center; margin-top:4px;">
+    <div>
+      <pre style="margin:0;"><code class="language-javascript" data-trim>
+rect(200, 200, 60, 24);
+circle(200, 218, 16);
+      </code></pre>
+      <div class="try" style="font-size:.78em; margin-top:20px;">
+        <b>Two questions</b>
+        What would you put in place of those numbers?<br>
+        And <strong>how many</strong> of them?
+      </div>
+    </div>
+    <svg viewBox="-8 -8 416 416" style="width:420px;">
+      <rect x="0" y="0" width="400" height="400" fill="#18263C"/>
+      <rect x="170" y="188" width="60" height="24" rx="4" fill="#D6DEEB"/>
+      <circle cx="200" cy="218" r="8" fill="#E04A4A"/>
+      <path d="M262 168 L290 192 L276 194 L272 208 Z" fill="#EAF0F7" stroke="#18263C" stroke-width="2"/>
+      <text x="298" y="196" fill="#8FA3BC" font-size="22" font-family="monospace">?</text>
+      <rect x="0" y="0" width="400" height="400" fill="none" stroke="#5A7391" stroke-width="3"/>
+    </svg>
+  </div>
+  <aside class="notes">
+    THREE MINUTES. ASK. DO NOT ADVANCE.
+
+    Someone will get the first question almost immediately - put the mouse
+    position in there. Good. Do not confirm the name of it yet.
+
+    THE SECOND QUESTION IS THE ONE THAT MATTERS. How many numbers change? Take
+    answers. Some will say the first one in each line. Some will say all four.
+
+    The right answer is: every number that describes a position, and every one
+    of them has to keep its distance from the others. That is yesterday's
+    broken face, on both axes.
+
+    IF SOMEBODY SAYS "ALL OF THEM INCLUDING THE 60 AND THE 24" - that is a
+    great wrong answer. The size does not move. Ask the room whether a drone
+    gets bigger when it flies right.
+  </aside>
+</section>
+
+<!-- ========================= MOUSE ========================= -->
+<section>
+  <span class="eyebrow">The answer</span>
+  <h3 style="font-size:1.22em;">p5 keeps two numbers for you</h3>
+  <div style="display:grid; grid-template-columns:1fr 420px; gap:44px; align-items:center; margin-top:4px;">
+    <div>
+      <div style="font:700 42px/1.5 var(--font-mono); color:var(--amber);">
+        mouseX<br>mouseY
+      </div>
+      <div class="fragment" style="font-size:.78em; color:var(--chalk-dim); margin-top:16px; line-height:1.6;">
+        Where the cursor is, <strong style="color:var(--chalk)">right now</strong>.
+        Updated every frame, before <code>draw()</code> runs.
+      </div>
+      <div class="fragment try" style="font-size:.74em; margin-top:14px;">
+        <b>Same as yesterday</b>
+        <code>headY</code> was a point <em>you</em> changed.
+        These are a point <strong>p5</strong> changes.
+      </div>
+    </div>
+    <svg viewBox="-8 -8 416 416" style="width:420px;">
+      <rect x="0" y="0" width="400" height="400" fill="#18263C"/>
+      <g stroke="#22344F" stroke-width="1">
+        <line x1="100" y1="0" x2="100" y2="400"/><line x1="200" y1="0" x2="200" y2="400"/>
+        <line x1="300" y1="0" x2="300" y2="400"/><line x1="0" y1="100" x2="400" y2="100"/>
+        <line x1="0" y1="200" x2="400" y2="200"/><line x1="0" y1="300" x2="400" y2="300"/>
+      </g>
+      <line x1="270" y1="0" x2="270" y2="400" stroke="#F2B705" stroke-width="2" stroke-dasharray="6 6"/>
+      <line x1="0" y1="150" x2="400" y2="150" stroke="#F2B705" stroke-width="2" stroke-dasharray="6 6"/>
+      <path d="M258 138 L286 162 L272 164 L268 178 Z" fill="#EAF0F7" stroke="#18263C" stroke-width="2"/>
+      <text x="278" y="392" fill="#F2B705" font-size="22" font-family="monospace"
+            text-anchor="middle">270</text>
+      <text x="14" y="144" fill="#F2B705" font-size="22" font-family="monospace">150</text>
+      <rect x="0" y="0" width="400" height="400" fill="none" stroke="#5A7391" stroke-width="3"/>
+    </svg>
+  </div>
+  <aside class="notes">
+    THREE MINUTES.
+
+    Type circle(mouseX, mouseY, 40) live and move the mouse. That is the whole
+    demo and it takes ten seconds.
+
+    THE CALLOUT IS WHY THIS IS A LESSON AND NOT A TRICK. Yesterday they made a
+    variable and changed it themselves. Today the variable already exists and
+    something else changes it. Same idea, different owner - and both are just
+    names for numbers.
+
+    You never write to mouseX. p5 sets it before every frame. If somebody tries
+    mouseX = 200, it will not stick, and that is worth mentioning only if it
+    comes up.
+  </aside>
+</section>
+
+<!-- ========================= GET THE STARTER ========================= -->
+<style>
+  .linkcard { background: var(--ink-2); border: 1px solid var(--wire);
+              border-left: 6px solid var(--amber); border-radius: 8px;
+              padding: 15px 22px 17px; margin-top: 14px; }
+  .linkcard .u { font: 700 30px/1.2 var(--font-mono); color: var(--amber); word-break: break-all; }
+  .linkcard .also { font-size: 20px; color: var(--chalk-dim); margin-top: 8px; }
+</style>
+<section>
+  <span class="eyebrow">Open this now</span>
+  <h2>Get the starter</h2>
+  <ol style="font-size:.88em; line-height:1.45;">
+    <li class="fragment">Open <code>u1l04b-starter.js</code> on GitHub &rarr; <strong>Copy raw file</strong></li>
+    <li class="fragment">p5 editor: <strong>File &rarr; New</strong>, paste over everything</li>
+    <li class="fragment"><strong>Rename</strong> to <code>u1l04b-drone</code> and save</li>
+  </ol>
+  <div class="linkcard">
+    <div class="u">github.com/emrgem/26-27-APCSP-STARTER-FILES</div>
+    <div class="also">Also linked in Google Classroom</div>
+  </div>
+  <aside class="notes">
+    TWO MINUTES, AND THEY NEED IT OPEN BEFORE THE NEXT SLIDE. The whole build
+    happens in this file - they type alongside you.
+
+    The drone is drawn with all six shapes at fixed numbers, and three of them
+    are already converted as worked examples. They do the other three later.
+
+    That is the opposite of yesterday, where the offsets were done for them.
+    Today doing the conversion IS the exercise.
+
+    FILE > NEW FIRST. Anyone who cannot save is not signed in.
+  </aside>
+</section>
+
+<!-- ========================= DRONE 1 ========================= -->
+<section>
+  <span class="eyebrow">Together &middot; you talk, I type</span>
+  <h3 style="font-size:1.22em;">The body follows</h3>
+  <div style="display:grid; grid-template-columns:1fr 420px; gap:44px; align-items:center; margin-top:4px;">
+    <div>
+      <pre style="margin:0;"><code class="language-javascript" data-trim data-line-numbers="1-2|4-5">
+fill(214, 222, 235);
+rect(mouseX, mouseY, 60, 24);
+
+fill(224, 74, 74);
+circle(mouseX, mouseY + 18, 16);
+      </code></pre>
+      <div class="fragment try" style="font-size:.74em; margin-top:14px;">
+        <b>The camera is 18 below the body</b>
+        Not at 218 &mdash; at <em>18 below wherever the body is</em>.
+      </div>
+    </div>
+    <svg viewBox="-8 -8 416 416" style="width:420px;">
+      <rect x="0" y="0" width="400" height="400" fill="#18263C"/>
+      <rect x="240" y="138" width="60" height="24" rx="4" fill="#D6DEEB"/>
+      <circle cx="270" cy="168" r="8" fill="#E04A4A"/>
+      <path d="M258 138 L286 162 L272 164 L268 178 Z" fill="#EAF0F7" stroke="#18263C" stroke-width="2"/>
+      <rect x="0" y="0" width="400" height="400" fill="none" stroke="#5A7391" stroke-width="3"/>
+    </svg>
+  </div>
+  <aside class="notes">
+    THREE MINUTES. Open the starter on the projector and type as they call it.
+
+    START WITH THE BODY - straight substitution, mouseX for 200, mouseY for 200.
+    Run it. It follows. Easy win.
+
+    THE CAMERA IS THE FIRST OFFSET, and on the y axis, which they did yesterday.
+    Ask for it rather than typing it: "the camera was at 218 and the body at
+    200. What is that in terms of mouseY?"
+
+    Both shapes move together. Nobody is impressed yet. The next slide is where
+    it breaks.
+  </aside>
+</section>
+
+<!-- ========================= DRONE 2 ========================= -->
+<section>
+  <span class="eyebrow">Together &middot; now the arms</span>
+  <h3 style="font-size:1.22em;">The body flies. The rotors do not.</h3>
+  <div style="display:grid; grid-template-columns:1fr 420px; gap:44px; align-items:center; margin-top:4px;">
+    <div>
+      <pre style="margin:0;"><code class="language-javascript" data-trim data-line-numbers="1-3|5-6">
+fill(136, 148, 168);
+rect(152, 186, 40, 6);
+rect(248, 186, 40, 6);
+
+fill(90, 169, 230);
+ellipse(132, 182, 56, 8);
+      </code></pre>
+      <div class="fragment try" style="font-size:.74em; margin-top:14px;">
+        <b>This time it is both directions</b>
+        The arms are left and right of the body, not just above it.
+      </div>
+    </div>
+    <svg viewBox="-8 -8 416 416" style="width:420px;">
+      <rect x="0" y="0" width="400" height="400" fill="#18263C"/>
+      <rect x="132" y="186" width="40" height="6" fill="#8894A8"/>
+      <rect x="228" y="186" width="40" height="6" fill="#8894A8"/>
+      <ellipse cx="132" cy="182" rx="28" ry="4" fill="#5AA9E6"/>
+      <ellipse cx="268" cy="182" rx="28" ry="4" fill="#5AA9E6"/>
+      <rect x="240" y="138" width="60" height="24" rx="4" fill="#D6DEEB"/>
+      <circle cx="270" cy="168" r="8" fill="#E04A4A"/>
+      <path d="M258 138 L286 162 L272 164 L268 178 Z" fill="#EAF0F7" stroke="#18263C" stroke-width="2"/>
+      <rect x="0" y="0" width="400" height="400" fill="none" stroke="#5A7391" stroke-width="3"/>
+    </svg>
+  </div>
+  <aside class="notes">
+    THREE MINUTES, AND DO NOT FIX IT.
+
+    Type the arms and rotors with their original fixed numbers. Run it and move
+    the mouse - the body and camera fly off and leave four parts hovering where
+    the drone used to be. It is the broken robot face again, and they should
+    recognize it.
+
+    ASK: "what is different about this one compared to the robot yesterday?"
+    The answer is on the callout: yesterday only the y values were wrong.
+    Here the arms are to the LEFT and RIGHT of the body, so the x values are
+    wrong too.
+
+    LET THEM SIT WITH IT for a moment. Somebody will say "minus 48" before you
+    get to the next slide, and if they do, hand it to them.
+  </aside>
+</section>
+
+<!-- ========================= DRONE 3 ========================= -->
+<section>
+  <span class="eyebrow">Together &middot; the fix</span>
+  <h3 style="font-size:1.22em;">Every part, measured from the body</h3>
+  <div style="display:grid; grid-template-columns:1fr 420px; gap:38px; align-items:center; margin-top:4px;">
+    <div>
+      <pre style="margin:0;"><code class="language-javascript" data-trim data-line-numbers="2-3|5-6">
+fill(136, 148, 168);
+rect(mouseX - 48, mouseY - 14, 40, 6);
+rect(mouseX + 48, mouseY - 14, 40, 6);
+
+fill(90, 169, 230);
+ellipse(mouseX - 68, mouseY - 18, 56, 8);
+      </code></pre>
+      <div class="fragment try" style="font-size:.72em; margin-top:12px;">
+        <b>Sizes never change</b>
+        <code>40</code>, <code>6</code>, <code>56</code>, <code>8</code> stay
+        exactly as they are. A drone does not grow when it flies right.
+      </div>
+    </div>
+    <svg viewBox="-8 -8 416 416" style="width:420px;">
+      <rect x="0" y="0" width="400" height="400" fill="#18263C"/>
+      <g transform="translate(200, 200)">
+        <rect x="-68" y="-18" width="40" height="6" fill="#8894A8"/>
+        <rect x="28" y="-18" width="40" height="6" fill="#8894A8"/>
+        <ellipse cx="-68" cy="-18" rx="28" ry="4" fill="#5AA9E6"/>
+        <ellipse cx="68" cy="-18" rx="28" ry="4" fill="#5AA9E6"/>
+        <rect x="-30" y="-12" width="60" height="24" rx="4" fill="#D6DEEB"/>
+        <circle cx="0" cy="18" r="8" fill="#E04A4A"/>
+      </g>
+      <circle cx="200" cy="200" r="7" fill="#ED225D"/>
+      <line x1="200" y1="200" x2="132" y2="200" stroke="#F2B705" stroke-width="3"/>
+      <text x="128" y="228" fill="#F2B705" font-size="21" font-family="monospace"
+            text-anchor="middle">- 68</text>
+      <line x1="200" y1="200" x2="200" y2="218" stroke="#F2B705" stroke-width="3"/>
+      <text x="232" y="244" fill="#F2B705" font-size="21" font-family="monospace"
+            text-anchor="middle">+ 18</text>
+      <rect x="0" y="0" width="400" height="400" fill="none" stroke="#5A7391" stroke-width="3"/>
+    </svg>
+  </div>
+  <aside class="notes">
+    FOUR MINUTES. Fix them live, running after each one.
+
+    ASK FOR THE NUMBERS. "The left arm was at 152 and the body at 200. How far
+    apart?" Forty-eight, and to the left, so minus. Do it once and they can do
+    the rest.
+
+    THE CALLOUT IS THE MISCONCEPTION TO HEAD OFF. Somebody will change the 40
+    and the 6 as well, because every number looks the same to them. Positions
+    move; sizes do not. "Does a drone get bigger when it flies right?" settles
+    it in one question.
+
+    THE SENTENCE FOR THE WHOLE LESSON: pick one point, and write every other
+    part as a distance from it. Yesterday the point was a variable they changed.
+    Today it is one p5 changes. Nothing else about the technique is different.
+  </aside>
+</section>
+
+<!-- ========================= OBJECTIVES ========================= -->
+<section>
+  <span class="eyebrow">So, today</span>
+  <h2>By the end of this period</h2>
+  <ul style="font-size:.95em;">
+    <li class="fragment">You can write a variable and say when one is worth using</li>
+    <li class="fragment">You can use <code>mouseX</code> and <code>mouseY</code> as a point</li>
+    <li class="fragment">You can move a <strong>whole object</strong> by measuring every part from one place</li>
+  </ul>
+  <aside class="notes">
+    Ninety seconds. The third one is the real skill and it is the one that
+    carries into every animation they write for the rest of the year.
+  </aside>
+</section>
+
+<!-- ========================= THE TASK ========================= -->
+<section>
+  <span class="eyebrow">On your own &middot; 6 minutes</span>
+  <h3 style="font-size:1.22em;">Finish the drone</h3>
+  <div style="display:grid; grid-template-columns:1fr 420px; gap:40px; align-items:center; margin-top:4px;">
+    <div>
+      <p style="font-size:.84em; margin:0 0 .6em;">Three parts are already
+        converted. Convert the other three so the whole drone flies together.</p>
+      <div class="try" style="font-size:.76em;">
+        <b>Check it</b>
+        Move the mouse into all four corners. If anything gets left behind,
+        that part still has a fixed number.
+      </div>
+    </div>
+    <svg viewBox="-8 -8 416 416" style="width:420px;">
+      <rect x="0" y="0" width="400" height="400" fill="#18263C"/>
+      <g transform="translate(300, 110)">
+        <rect x="-68" y="-18" width="40" height="6" fill="#8894A8"/>
+        <rect x="28" y="-18" width="40" height="6" fill="#8894A8"/>
+        <ellipse cx="-68" cy="-18" rx="28" ry="4" fill="#5AA9E6"/>
+        <ellipse cx="68" cy="-18" rx="28" ry="4" fill="#5AA9E6"/>
+        <rect x="-30" y="-12" width="60" height="24" rx="4" fill="#D6DEEB"/>
+        <circle cx="0" cy="18" r="8" fill="#E04A4A"/>
+      </g>
+      <g transform="translate(110, 300)" opacity=".35">
+        <rect x="-68" y="-18" width="40" height="6" fill="#8894A8"/>
+        <rect x="28" y="-18" width="40" height="6" fill="#8894A8"/>
+        <ellipse cx="-68" cy="-18" rx="28" ry="4" fill="#5AA9E6"/>
+        <ellipse cx="68" cy="-18" rx="28" ry="4" fill="#5AA9E6"/>
+        <rect x="-30" y="-12" width="60" height="24" rx="4" fill="#D6DEEB"/>
+        <circle cx="0" cy="18" r="8" fill="#E04A4A"/>
+      </g>
+      <rect x="0" y="0" width="400" height="400" fill="none" stroke="#5A7391" stroke-width="3"/>
+    </svg>
+  </div>
+  <aside class="notes">
+    SIX MINUTES. Circulate.
+
+    THE CORNER TEST IS THE SELF-CHECK and it is better than looking at the
+    middle of the canvas. Near the center a part that is 20 pixels off looks
+    almost right; in a corner it is obvious.
+
+    WATCH FOR
+    - Sizes converted along with positions. rect(mouseX - 48, mouseY - 14,
+      mouseX + 40, 6) - the drone stretches as it moves right. Ask what the
+      third number is for.
+    - Signs flipped. mouseX + 48 for the left arm puts both arms on the right.
+    - One part still fixed. That is what the corner test catches.
+
+    EARLY FINISHERS go to the challenge slide.
+  </aside>
+</section>
+
+<!-- ========================= CHALLENGE ========================= -->
+<section>
+  <span class="eyebrow">If you finish</span>
+  <h3 style="font-size:1.22em;">Three things to try</h3>
+  <ol style="font-size:.86em; line-height:1.6;">
+    <li class="fragment">Add a <strong>second drone</strong> that stays 100 to the left of the first</li>
+    <li class="fragment">Make the rotors <strong>wider</strong> than they are &mdash; only two numbers change</li>
+    <li class="fragment">Draw a <strong>shadow</strong> on the ground: same x, but always at <code>y = 370</code></li>
+  </ol>
+  <aside class="notes">
+    TWO MINUTES to set up, then they work.
+
+    THE SHADOW IS THE BEST ONE. It follows mouseX but ignores mouseY entirely -
+    so a student has to realize the two are independent, and that an offset can
+    apply to one axis and not the other. That is a real step up.
+
+    THE SECOND DRONE is a nice test of whether they understood offsets: every
+    part of it is mouseX minus 100 minus its own offset. Some will try to copy
+    the block and change one number, which does not work, and finding that out
+    is the lesson.
+
+    Do not require any of these. They are for the students who are done.
+  </aside>
+</section>
+
+<!-- ========================= CHECK 1 ========================= -->
+<section>
+  <span class="eyebrow">Check &middot; 1 of 3</span>
+  <h2 style="font-size:1.6em; line-height:1.2;">
+    Who changes <code>mouseX</code>?
+  </h2>
+  <p class="fragment" style="font-size:1.25em; color:var(--amber); margin-top:1.1em;">
+    p5 does, before every frame. You only read it.
+  </p>
+  <aside class="notes">
+    The contrast with yesterday. headY was theirs to change; mouseX is not.
+  </aside>
+</section>
+
+<!-- ========================= CHECK 2 ========================= -->
+<section>
+  <span class="eyebrow">Check &middot; 2 of 3</span>
+  <h2 style="font-size:1.6em; line-height:1.2;">
+    Your drone stretches sideways as it moves right. What did you convert by mistake?
+  </h2>
+  <p class="fragment" style="font-size:1.25em; color:var(--amber); margin-top:1.1em;">
+    A <strong>size</strong>. Only positions follow the mouse.
+  </p>
+  <aside class="notes">
+    Ask for hands before revealing - several will have done it.
+
+    "Does a drone get bigger when it flies right?" is the question that fixes
+    it permanently.
+  </aside>
+</section>
+
+<!-- ========================= CHECK 3 ========================= -->
+<section>
+  <span class="eyebrow">Check &middot; 3 of 3</span>
+  <h2 style="font-size:1.6em; line-height:1.2;">
+    One rotor stays behind while the rest flies away. Why?
+  </h2>
+  <p class="fragment" style="font-size:1.25em; color:var(--amber); margin-top:1.1em;">
+    It still has a fixed number instead of an offset.
+  </p>
+  <aside class="notes">
+    Third time this failure has come up - the robot's face, the rocket's nose,
+    now a rotor. By now they should answer it before you press.
+
+    NOTE WHO IS QUIET ON 2 AND 3 on the seating chart.
+  </aside>
+</section>
+
+<!-- ========================= EXAM NOTATION ========================= -->
+<section>
+  <span class="eyebrow">On the AP exam</span>
+  <h3 style="font-size:1.22em;">The same idea, written differently</h3>
+  <div style="display:grid; grid-template-columns:1fr 1fr; gap:44px; margin-top:10px;">
+    <div>
+      <div style="font:600 20px/1 var(--font-mono); color:var(--chalk-dim);
+                  letter-spacing:.1em; text-transform:uppercase; margin-bottom:10px;">
+        JavaScript &mdash; what you write</div>
+      <pre style="margin:0;"><code class="language-javascript" data-trim>
+let armX = mouseX - 48;
+
+let total = a + b;
+      </code></pre>
+    </div>
+    <div>
+      <div style="font:600 20px/1 var(--font-mono); color:var(--signal);
+                  letter-spacing:.1em; text-transform:uppercase; margin-bottom:10px;">
+        Exam Reference Sheet</div>
+      <div style="background:#1E1E1E; border-radius:8px; padding:20px 24px;
+                  font:600 27px/1.9 var(--font-mono); color:#EAF0F7;">
+        armX &larr; mouseX - 48<br><br>total &larr; a + b
+      </div>
+    </div>
+  </div>
+  <p class="fragment" style="font-size:.82em; color:var(--amber); margin-top:16px;">
+    No <code>let</code>, no semicolon. The arrow does the work.
+  </p>
+  <aside class="notes">
+    TWO MINUTES. Second time they have seen this - it should go faster than
+    yesterday.
+
+    The arithmetic on the right side is identical. Only the assignment changes:
+    an arrow instead of an equals sign, no let, no semicolon.
+
+    ASK THEM TO READ ONE ALOUD. "armX becomes mouseX minus 48." If they can say
+    it, they can read it in May.
+
+    Do not drill it. Exposure now, practice in Unit 3 when the exam gets close
+    enough to matter.
+  </aside>
+</section>
+
+<!-- ========================= CED ========================= -->
+<section>
+  <span class="eyebrow">Where this fits</span>
+  <h3 style="font-size:1.22em;">3.1 Variables and Assignments</h3>
+  <div style="display:grid; grid-template-columns:auto 1fr; gap:8px 22px;
+       margin-top:16px; align-items:baseline;">
+    <div style="font:700 27px/1.5 var(--font-mono); color:var(--amber);">AAP-1.A</div><div style="font-size:25px; line-height:1.5; color:var(--chalk);">Represent a value with a variable.</div><div style="font:700 27px/1.5 var(--font-mono); color:var(--amber);">AAP-1.B</div><div style="font-size:25px; line-height:1.5; color:var(--chalk);">Determine the value of a variable as a result of an assignment.</div>
+  </div>
+  <div style="border-top:1px solid var(--wire); margin-top:18px; padding-top:14px;
+       display:grid; grid-template-columns:auto 1fr; gap:6px 22px; align-items:baseline;">
+    <div style="font:700 25px/1.5 var(--font-mono); color:#7BD88F;">3.A</div><div style="font-size:23px; line-height:1.5; color:var(--chalk-dim);">Generalize data sources through variables.</div><div style="font:700 25px/1.5 var(--font-mono); color:#7BD88F;">4.B</div><div style="font-size:23px; line-height:1.5; color:var(--chalk-dim);">Determine the result of code segments.</div>
+  </div>
+  <aside class="notes">
+    Same topic as yesterday, and that is the point - one topic can take two
+    periods.
+
+    AAP-1.A.3 lists the types the exam uses: numbers, Booleans, lists and
+    strings. They have only met numbers so far. Booleans arrive next lesson.
+
+    Skill 3.A is the one this lesson really trains: generalizing through
+    variables. A drone written with mouseX works anywhere on the canvas; one
+    written with 200 works in exactly one place.
+
+    THIS SLIDE IS FOR THEM AS MUCH AS FOR YOU. Sophomores in an AP course
+    rarely know that what they did today is a named thing on a syllabus. Thirty
+    seconds of "this has a code and it is worth this much of the exam" is worth
+    more than it sounds.
+
+    Do not read the codes aloud. Point at the topic name and the skill, and move
+    on.
+  </aside>
+</section>
+
+<!-- ========================= EXTRA 1 ========================= -->
+<style>
+  .demo { display: grid; grid-template-columns: 1fr 430px; gap: 40px;
+          align-items: center; margin-top: 6px; }
+  .demo iframe { width: 430px; height: 430px; border: 0; border-radius: 8px;
+                 background: #18263C; }
+</style>
+<section>
+  <span class="eyebrow">What else you could do</span>
+  <h3 style="font-size:1.22em;">A shadow that knows how high you are</h3>
+  <div class="demo js-demo">
+    <div>
+      <pre style="margin:0;"><code class="language-javascript" data-trim>
+let shadowSize = mouseY / 4 + 20;
+
+rect(mouseX, 370, shadowSize, 8);
+      </code></pre>
+      <div class="try" style="font-size:.74em; margin-top:18px;">
+        <b>A variable made from another variable</b>
+        Every offset so far was <code>mouseX</code> plus a fixed number. This one is calculated.
+      </div>
+      <textarea class="demo-code" style="display:none;">
+function setup() {
+  createCanvas(400, 400);
+  rectMode(CENTER);
+}
+function draw() {
+  background(24, 38, 60);
+  noStroke();
+  let shadowSize = mouseY / 4 + 20;
+  fill(10, 15, 25);
+  rect(mouseX, 370, shadowSize, 8);
+  rect(mouseX - shadowSize/2, 365, shadowSize/2, 5);
+  rect(mouseX + shadowSize/2, 365, shadowSize/2, 5);
+  ellipse(mouseX - shadowSize, 363, shadowSize, 5);
+  ellipse(mouseX + shadowSize, 363, shadowSize, 5);
+  fill(214, 222, 235);
+  rect(mouseX, mouseY, 60, 24);
+  fill(224, 74, 74);
+  circle(mouseX, mouseY + 18, 16);
+  fill(136, 148, 168);
+  rect(mouseX - 48, mouseY - 14, 40, 6);
+  rect(mouseX + 48, mouseY - 14, 40, 6);
+  fill(90, 169, 230);
+  ellipse(mouseX - 68, mouseY - 18, 80, 8);
+  ellipse(mouseX + 68, mouseY - 18, 80, 8);
+}</textarea>
+    </div>
+    <div>
+      <iframe class="demo-frame" title="Live drone sketch"></iframe>
+      <div style="font:600 19px/1.3 var(--font-mono); color:var(--chalk-dim);
+                  text-align:center; margin-top:8px;">move your mouse</div>
+    </div>
+  </div>
+  <aside class="notes">
+    TIME
+    2 min
+
+    SAY
+    Move the mouse up and down. The shadow grows as the drone climbs and
+    shrinks as it drops.
+    Point at the first line. shadowSize is a variable made OUT OF another
+    variable - the first one all year.
+    Then the shadow's own parts are offsets from shadowSize, the same way
+    the drone's parts are offsets from mouseX.
+
+    WATCH FOR
+    Do not teach this. It is a preview - show it, name what is new, let
+    the interested ones read the file.
+  </aside>
+</section>
+
+<!-- ========================= EXTRA 2 ========================= -->
+<section>
+  <span class="eyebrow">Or this</span>
+  <h3 style="font-size:1.22em;">A camera beam that widens with altitude</h3>
+  <div class="demo js-demo">
+    <div>
+      <pre style="margin:0;"><code class="language-javascript" data-trim>
+fill(255, 80, 80, 40);
+triangle(mouseX - 40, 370,
+         mouseX + 40, 370,
+         mouseX, mouseY + 25);
+      </code></pre>
+      <div class="try" style="font-size:.74em; margin-top:18px;">
+        <b>Alpha does the work</b>
+        The fourth number in <code>fill()</code> makes the beam see-through.
+      </div>
+      <textarea class="demo-code" style="display:none;">
+function setup() {
+  createCanvas(400, 400);
+  rectMode(CENTER);
+}
+function draw() {
+  background(24, 38, 60);
+  noStroke();
+  fill(255, 80, 80, 40);
+  triangle(mouseX - 40, 370, mouseX + 40, 370, mouseX, mouseY + 25);
+  let lightSize = mouseY / 3 + 30;
+  fill(255, 80, 80, 100);
+  ellipse(mouseX, 370, lightSize, 12);
+  fill(214, 222, 235);
+  rect(mouseX, mouseY, 60, 24);
+  fill(224, 74, 74);
+  circle(mouseX, mouseY + 18, 16);
+  fill(136, 148, 168);
+  rect(mouseX - 48, mouseY - 14, 40, 6);
+  rect(mouseX + 48, mouseY - 14, 40, 6);
+  fill(90, 169, 230);
+  ellipse(mouseX - 68, mouseY - 18, 80, 8);
+  ellipse(mouseX + 68, mouseY - 18, 80, 8);
+}</textarea>
+    </div>
+    <div>
+      <iframe class="demo-frame" title="Live drone sketch"></iframe>
+      <div style="font:600 19px/1.3 var(--font-mono); color:var(--chalk-dim);
+                  text-align:center; margin-top:8px;">move your mouse</div>
+    </div>
+  </div>
+  <aside class="notes">
+    TIME
+    2 min
+
+    SAY
+    Same idea: lightSize = mouseY / 3 + 30.
+    The beam is one triangle - two corners fixed on the ground, the third
+    following the drone. Drawn FIRST so the drone sits on top of it.
+    The see-through look is the fourth number in fill(), from Lesson 2.
+    Both files are in the repo. Anyone who wants to pull one apart is
+    welcome to.
+
+    IF BEHIND
+    Cut both extras before anything else. They are a reward, not a
+    requirement.
+  </aside>
+</section>
+
+<!-- ========================= EXIT ========================= -->
+<section>
+  <span class="eyebrow">Before you log off</span>
+  <h2>Two things</h2>
+  <ol style="font-size:.9em;">
+    <li>Save your sketch</li>
+    <li>Last line of your file: <code>// TODO:</code> and what you would add next</li>
+  </ol>
+  <p style="font-size:.8em; color:var(--chalk-dim); margin-top:1em;">
+    Tomorrow: how to make the rocket stop falling.
+  </p>
+  <aside class="notes">
+    NOTHING TO TURN IN.
+
+    Post u1l04b-solution.js to Classroom after the period.
+
+    The tease points back at the problem left open in Lesson 4 - the rocket that
+    falls forever. Two lessons have now gone by with that hanging, which is
+    exactly the right amount of time for conditionals to feel like a relief.
+  </aside>
+</section>
+
+</div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/plugin/highlight/highlight.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/plugin/notes/notes.js"></script>
+
+<script>
+/* ===========================================================================
+   1. SYNTAX HIGHLIGHTING FOR THE EDITABLE CODE
+   A <textarea> renders one color and nothing can change that. So the visible
+   colors come from a div underneath, and the textarea on top is transparent
+   with only its caret showing. The two must share identical font metrics or
+   the cursor drifts away from the letters.
+   =========================================================================== */
+
+function esc(s) {
+  return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+
+/* Small hand-rolled tokenizer. Beginner p5.js only — no regex literals, no
+   template interpolation — so this stays short and predictable. Colors match
+   VS Code Dark+. */
+function paint(src) {
+  var re = /(\/\/[^\n]*)|("(?:[^"\\]|\\.)*"|'(?:[^'\\]|\\.)*')|\b(function|let|const|var|new)\b|\b(if|else|for|while|return|break|continue)\b|\b(true|false|null|undefined)\b|\b(\d+(?:\.\d+)?)\b|([A-Za-z_$][A-Za-z0-9_$]*)(?=\s*\()|([A-Za-z_$][A-Za-z0-9_$]*)/g;
+  var out = '', last = 0, m;
+  while ((m = re.exec(src)) !== null) {
+    out += esc(src.slice(last, m.index));
+    var cls = m[1] ? 'c-com' : m[2] ? 'c-str' : m[3] ? 'c-kw'
+            : m[4] ? 'c-ctl' : m[5] ? 'c-kw'  : m[6] ? 'c-num'
+            : m[7] ? 'c-fn'  : 'c-var';
+    out += '<span class="' + cls + '">' + esc(m[0]) + '</span>';
+    last = m.index + m[0].length;
+  }
+  /* Trailing newline keeps the last line from being clipped. */
+  return out + esc(src.slice(last)) + '\n';
+}
+
+/* Shrink the font until the code fits the fixed editor height. Floor of 17px:
+   below that it is unreadable from the back of a classroom, so instead of
+   shrinking further we let it scroll and warn in the console. */
+function fitFont(box, ta, hl) {
+  var lines = ta.value.split('\n').length;
+  var avail = box.clientHeight - 34;          /* padding top + bottom */
+  var size = Math.floor(avail / (lines * 1.45));
+  if (size < 17) {
+    console.warn('Lab code is ' + lines + ' lines; will scroll. Trim to 15 or fewer.');
+  }
+  size = Math.max(17, Math.min(26, size));
+  ta.style.fontSize = size + 'px';
+  hl.style.fontSize = size + 'px';
+}
+
+/* ===========================================================================
+   2. LIVE PREVIEW
+   Run wraps the textarea contents in a throwaway HTML page and hands it to the
+   iframe via srcdoc, reloading the frame from scratch. Reloading is what makes
+   it reliable: p5 does not cleanly swap a sketch out from under itself.
+   =========================================================================== */
+
+var P5_URL = 'https://cdn.jsdelivr.net/npm/p5@1.9.4/lib/p5.min.js';
+
+function buildPage(code) {
+  return [
+    '<!DOCTYPE html><html><head><meta charset="utf-8">',
+    '<script src="', P5_URL, '"><\/script>',
+    '<style>',
+      'html,body{margin:0;height:100%;display:grid;place-items:center;',
+      'background:#18263C;overflow:hidden;}',
+      'canvas{max-width:100%;max-height:100%;}',
+      '#err{position:absolute;inset:auto 0 0 0;padding:10px 14px;',
+      'background:#ED225D;color:#fff;font:600 17px/1.4 monospace;display:none;}',
+    '</style></head><body><div id="err"></div>',
+    '<script>',
+      'window.onerror=function(msg,src,line){',
+        'var e=document.getElementById("err");',
+        'e.style.display="block";',
+        'e.textContent="Line "+(line-1)+": "+msg;',
+        'return true;};',
+    '<\/script>',
+    '<script>', code, '<\/script>',
+    '</body></html>'
+  ].join('');
+}
+
+function runLab(lab) {
+  lab.querySelector('.lab-frame').srcdoc = buildPage(lab.querySelector('.lab-code').value);
+}
+
+/* Blanking srcdoc unloads the document, which stops p5's draw loop dead.
+   Without this every sketch in the deck keeps drawing at 60fps in the
+   background and the machine bogs down partway through the period. */
+function stopLab(lab) {
+  lab.querySelector('.lab-frame').srcdoc = '';
+}
+
+/* Demo panes: a live sketch with no editor. They reuse buildPage but must
+   not go through the .lab runner, which expects a highlighter and buttons. */
+document.querySelectorAll('.js-demo').forEach(function (demo) {
+  var frame = demo.querySelector('.demo-frame');
+  var code  = demo.querySelector('.demo-code');
+  demo._start = function () { frame.srcdoc = buildPage(code.value); };
+  demo._stop  = function () { frame.srcdoc = ''; };
+});
+
+var pristine = new Map();
+
+document.querySelectorAll('.lab').forEach(function (lab) {
+  var ta  = lab.querySelector('.lab-code');
+  var hl  = lab.querySelector('.hl');
+  var box = lab.querySelector('.editor');
+
+  pristine.set(lab, ta.value);
+
+  function refresh() {
+    hl.innerHTML = paint(ta.value);
+    fitFont(box, ta, hl);
+  }
+  refresh();
+
+  ta.addEventListener('input', refresh);
+  ta.addEventListener('scroll', function () {
+    hl.scrollTop = ta.scrollTop;
+    hl.scrollLeft = ta.scrollLeft;
+  });
+
+  lab.querySelector('[data-run]').addEventListener('click', function () { runLab(lab); });
+
+  lab.querySelector('[data-reset]').addEventListener('click', function () {
+    ta.value = pristine.get(lab);
+    refresh();
+    runLab(lab);
+  });
+
+  /* Reveal ignores keystrokes while a textarea has focus, so arrow keys move
+     the cursor instead of changing slides. Ctrl/Cmd+Enter runs. */
+  ta.addEventListener('keydown', function (e) {
+    if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+      e.preventDefault();
+      runLab(lab);
+    }
+  });
+});
+
+Reveal.initialize({
+  /* True 16:9. Reveal scales this coordinate space to fill the TV, so every
+     size in the CSS above is proportional to the screen, not to a laptop.
+     Do not change these without redoing the type scale. */
+  width: 1280,
+  height: 720,
+  margin: 0.045,
+  minScale: 0.2,
+  maxScale: 2.0,
+  hash: true,
+  slideNumber: 'c/t',
+  transition: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'none' : 'slide',
+  plugins: [ RevealHighlight, RevealNotes ]
+});
+
+Reveal.on('ready', function (e) {
+  var lab = e.currentSlide.querySelector('.lab');
+  if (lab) runLab(lab);
+});
+
+Reveal.on('ready', function (e) {
+  e.currentSlide.querySelectorAll('.js-demo').forEach(function (d) {
+    if (d._start) d._start();
+  });
+});
+
+Reveal.on('slidechanged', function (e) {
+  var leaving = e.previousSlide && e.previousSlide.querySelector('.lab');
+  if (leaving) stopLab(leaving);
+  var arriving = e.currentSlide.querySelector('.lab');
+  if (arriving) runLab(arriving);
+
+  /* Same lifecycle for the demo panes - start on arrival, unload on exit so
+     they are not still drawing at 60fps three slides later. */
+  if (e.previousSlide) {
+    e.previousSlide.querySelectorAll('.js-demo').forEach(function (d) {
+      if (d._stop) d._stop();
+    });
+  }
+  e.currentSlide.querySelectorAll('.js-demo').forEach(function (d) {
+    if (d._start) d._start();
+  });
+});
+</script>
+</body>
+</html>

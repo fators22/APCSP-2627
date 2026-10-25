@@ -1,0 +1,1376 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AP CSP — Unit 1, Lesson 5: Words, Color, and Events</title>
+
+<!--
+  ============================================================================
+  AP CSP LESSON DECK TEMPLATE  —  reveal.js + live p5.js preview
+  Sized for a 16:9 classroom TV. Double-click to open; no server needed.
+  ============================================================================
+
+  KEYS   arrows/space navigate · S speaker notes · F fullscreen · ESC overview
+
+  WHY UMD SCRIPTS, NOT ES MODULES
+    Modules over file:// are blocked by CORS, so a module deck is blank when
+    you double-click it. The classic <script> builds below are not.
+
+  OFFLINE
+    Three CDN links (reveal, p5, fonts) need internet. If school wifi is
+    unreliable, download reveal.js and p5.min.js next to this file and swap
+    the URLs for local paths.
+
+  TWO SLIDE TYPES
+    .walkthrough — read-only code, revealed a few lines at a time. Max 10 lines.
+    .lab         — editable code + live canvas. Max ~15 lines.
+    Copy either <section> to make a new slide.
+
+  FITTING RULES (do not exceed, or content runs off the bottom of the TV)
+    Walkthrough code : 10 lines
+    Lab code         : 15 lines — beyond this the auto-fit drops below 17px
+    Code line length : 44 characters
+  ============================================================================
+-->
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/plugin/highlight/monokai.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=IBM+Plex+Sans:wght@400;600&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet">
+
+<style>
+/* ---------------------------------------------------------------------------
+   DESIGN TOKENS
+   Dark drafting-blue ground for the deck; VS Code Dark+ for code surfaces so
+   the slide looks like the editor students are typing into.
+   --------------------------------------------------------------------------- */
+:root {
+  --ink:       #101A2B;
+  --ink-2:     #18263C;
+  --wire:      #2B3F5F;
+  --grid:      #1E2F47;
+  --chalk:     #EAF0F7;
+  --chalk-dim: #AEC0D8;
+  --signal:    #ED225D;
+  --amber:     #F2B705;
+
+  /* VS Code Dark+ */
+  --vs-bg:      #1E1E1E;
+  --vs-text:    #D4D4D4;
+  --vs-comment: #6A9955;
+  --vs-string:  #CE9178;
+  --vs-keyword: #569CD6;
+  --vs-control: #C586C0;
+  --vs-number:  #B5CEA8;
+  --vs-func:    #DCDCAA;
+  --vs-var:     #9CDCFE;
+
+  --font-display: 'Space Grotesk', system-ui, sans-serif;
+  --font-body:    'IBM Plex Sans', system-ui, sans-serif;
+  --font-mono:    'IBM Plex Mono', 'SFMono-Regular', Consolas, monospace;
+}
+
+/* Signature: the deck is a coordinate grid with the origin marked top-left.
+   Beginners' first hurdle is that y grows downward, so the room looks at that
+   fact all period without being lectured about it. */
+.reveal-viewport {
+  background-color: var(--ink);
+  background-image:
+    linear-gradient(var(--grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+  background-size: 64px 64px;
+}
+.reveal-viewport::before {
+  content: "(0, 0)";
+  position: fixed; top: 12px; left: 16px;
+  font: 600 20px/1 var(--font-mono);
+  color: var(--signal); opacity: .5;
+  letter-spacing: .04em; z-index: 40; pointer-events: none;
+}
+
+.reveal { font-family: var(--font-body); color: var(--chalk); font-size: 34px; }
+.reveal h1, .reveal h2, .reveal h3 {
+  font-family: var(--font-display); font-weight: 700;
+  color: var(--chalk); text-transform: none; letter-spacing: -.02em;
+  margin: 0 0 .3em;
+}
+.reveal h1 { font-size: 2em; line-height: 1.05; }
+.reveal h2 { font-size: 1.45em; }
+.reveal h3 { font-size: 1.05em; }
+.reveal p, .reveal li { line-height: 1.4; }
+.reveal section > ul, .reveal section > ol { font-size: 1.02em; }
+.reveal li { margin-bottom: .3em; }
+.reveal ol, .reveal ul { margin-left: 1em; }
+.reveal strong { color: var(--amber); font-weight: 600; }
+.reveal section { text-align: left; }
+.reveal .slide-number { font-family: var(--font-mono); font-size: 15px; }
+
+.eyebrow {
+  font: 600 1.4em/1 var(--font-mono);
+  color: var(--signal); letter-spacing: .14em; text-transform: uppercase;
+  display: block; margin-bottom: .18em;
+}
+
+/* ---- Walkthrough code: the "read it together" moment, largest text here ---
+   VS Code Dark+ colors override the monokai stylesheet reveal ships with. */
+.reveal pre {
+  width: 100%; margin: 0; box-shadow: none; border-radius: 8px;
+}
+.reveal pre code {
+  font-family: var(--font-mono); font-size: 30px; line-height: 1.45;
+  padding: 20px 24px; max-height: none; border-radius: 8px;
+  background: var(--vs-bg); color: var(--vs-text);
+}
+.reveal pre code .hljs-comment,
+.reveal pre code .hljs-quote            { color: var(--vs-comment); font-style: normal; }
+.reveal pre code .hljs-string           { color: var(--vs-string); }
+.reveal pre code .hljs-number           { color: var(--vs-number); }
+.reveal pre code .hljs-keyword          { color: var(--vs-control); }
+.reveal pre code .hljs-literal,
+.reveal pre code .hljs-built_in         { color: var(--vs-keyword); }
+.reveal pre code .hljs-function .hljs-keyword { color: var(--vs-keyword); }
+.reveal pre code .hljs-title,
+.reveal pre code .hljs-title.function_  { color: var(--vs-func); }
+.reveal pre code .hljs-params,
+.reveal pre code .hljs-variable,
+.reveal pre code .hljs-attr             { color: var(--vs-var); }
+
+/* ---- Lab slide -----------------------------------------------------------
+   Fixed heights. The whole slide budget is 655px of usable vertical space, so
+   these numbers are load-bearing: eyebrow 34 + h3 46 + row 565 = 645.
+   Editor and canvas sit side by side; the callout goes UNDER THE CANVAS,
+   using the dead space a square canvas leaves in a 16:9 column. */
+.lab { display: grid; grid-template-columns: 1.28fr .72fr; gap: 24px; align-items: start; }
+.lab-label {
+  display: block; font: 600 19px/1 var(--font-mono); color: var(--chalk-dim);
+  letter-spacing: .08em; text-transform: uppercase; margin-bottom: 8px;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+
+/* The editor is a transparent textarea stacked on a highlighted layer.
+   Every metric below MUST match between .hl and textarea or the caret drifts
+   away from the glyphs. Change one, change both. */
+.editor { position: relative; height: 440px; }
+.editor .hl,
+.editor textarea {
+  position: absolute; inset: 0; margin: 0;
+  font-family: var(--font-mono); font-size: 26px; line-height: 1.45;
+  padding: 16px 18px; border: 1px solid var(--wire); border-radius: 8px;
+  white-space: pre; overflow: auto; tab-size: 2; letter-spacing: 0;
+  box-sizing: border-box;
+}
+.editor .hl { background: var(--vs-bg); color: var(--vs-text); pointer-events: none; z-index: 1; }
+.editor textarea {
+  background: transparent; color: transparent; caret-color: #FFF;
+  z-index: 2; resize: none; border-color: transparent;
+}
+.editor textarea:focus-visible { outline: 4px solid var(--amber); outline-offset: 3px; }
+
+.c-com { color: var(--vs-comment); }
+.c-str { color: var(--vs-string); }
+.c-kw  { color: var(--vs-keyword); }
+.c-ctl { color: var(--vs-control); }
+.c-num { color: var(--vs-number); }
+.c-fn  { color: var(--vs-func); }
+.c-var { color: var(--vs-var); }
+
+.lab-buttons { margin-top: 12px; display: flex; gap: 12px; align-items: center; }
+.lab button {
+  font-family: var(--font-body); font-size: 22px; font-weight: 600;
+  padding: 10px 22px; border-radius: 6px; border: 1px solid var(--wire);
+  background: var(--ink-2); color: var(--chalk); cursor: pointer;
+}
+.lab button.primary { background: var(--signal); border-color: var(--signal); color: #fff; }
+.lab button:hover { filter: brightness(1.15); }
+.lab button:focus-visible { outline: 4px solid var(--amber); outline-offset: 3px; }
+.lab .hint { font-size: 19px; color: var(--chalk-dim); font-family: var(--font-mono); }
+
+.lab iframe {
+  width: 100%; aspect-ratio: 1 / 1; display: block;
+  background: var(--ink-2);
+  border: 1px solid var(--wire); border-radius: 8px;
+}
+
+/* ---- "Try this" callout -------------------------------------------------- */
+.try {
+  border-left: 6px solid var(--amber); background: rgba(242,183,5,.11);
+  padding: 12px 18px; border-radius: 0 8px 8px 0; font-size: 21px; line-height: 1.35;
+}
+.lab .try { margin-top: 14px; }
+section > .try { margin-top: 20px; font-size: 26px; padding: 16px 24px; }
+.try b { color: var(--amber); font-family: var(--font-mono); font-size: .82em;
+         letter-spacing: .08em; text-transform: uppercase; display: block;
+         margin-bottom: 5px; }
+
+@media (prefers-reduced-motion: reduce) {
+  .reveal .slides section { transition: none !important; }
+}
+</style>
+</head>
+
+<body>
+<div class="reveal">
+<div class="slides">
+
+<!-- ========================= TITLE ========================= -->
+<section>
+  <span class="eyebrow">Unit 1 &middot; Lesson 5</span>
+  <h1>Words, color,<br>and events</h1>
+  <p style="color:var(--chalk-dim); font-size:.86em; margin-top:.6em;">
+    Everything you have drawn so far is a shape. Today the program says something.
+  </p>
+  <aside class="notes">
+    RUN SHEET (55 min) - this is a period and a half, see the note below
+    0-2    Preview: the readout, and the reset.
+    2-6    REVIEW: three sketches from yesterday, all running.
+    6-10   WARM-UP: offsets, review.
+    10-14  console.log() - a window only you can see.
+    14-18  text() - the first thing that is not a shape.
+    18-21  Strings: quotes change what a thing IS.
+    21-25  ROBOT: put a readout on it.
+    25-28  color() - a variable can hold one.
+    28-32  Event handlers - code that runs when something happens.
+    32-36  ROBOT: keyPressed() resets it.
+    36-39  Objectives, then get the starter.
+    39-47  Readout and reset on the rocket, then the puzzles.
+    47-51  BOARDS: fill in the two handlers.
+    51-53  Three questions.
+    53-55  Exam notation and where this fits. Save, log off.
+
+    THIS DOES NOT FIT IN ONE PERIOD AND THAT IS FINE. The natural stopping
+    point is after the robot readout at minute 25 - they have console.log,
+    text() and strings, which is a coherent half. Pick it up at color() next
+    period.
+
+    If you would rather finish in one, the cuts are below - but nothing here
+    is filler, so running two days is the better trade.
+
+    CUT IN THIS ORDER IF BEHIND:
+      1. THE color() SLIDE - it is a nice-to-have and it is on the reference
+         sheet anyway.
+      2. THE BOARD ACTIVITY - it is good practice but the rocket task covers
+         the same ground.
+    Do not cut the strings slide. Quotes are the misconception of the lesson.
+
+    NOTHING TO TURN IN.
+
+    BEFORE CLASS: push both starters to the repo and link them in Classroom.
+  </aside>
+</section>
+
+<!-- ========================= PREVIEW ========================= -->
+<section>
+  <span class="eyebrow">By the end of today</span>
+  <h3 style="font-size:1.22em;">It tells you where it is. And it starts over.</h3>
+  <div style="display:grid; grid-template-columns:auto auto 1fr; gap:30px; align-items:center; margin-top:4px;">
+    <svg viewBox="-8 -8 416 416" style="width:240px;">
+      <rect x="0" y="0" width="400" height="400" fill="#101A2B"/>
+      <rect x="50" y="342" width="300" height="26" fill="#5B6B82"/>
+      <rect x="170" y="150" width="60" height="90" fill="#D6DEEB"/>
+      <polygon points="200,90 230,150 170,150" fill="#E04A4A"/>
+      <circle cx="200" cy="175" r="13" fill="#5AA9E6"/>
+      <rect x="170" y="240" width="8" height="30" fill="#9AA9BD"/>
+      <rect x="222" y="240" width="8" height="30" fill="#9AA9BD"/>
+      <text x="20" y="40" fill="#7BD88F" font-size="26" font-family="monospace">ALTITUDE 210</text>
+      <rect x="0" y="0" width="400" height="400" fill="none" stroke="#5A7391" stroke-width="3"/>
+    </svg>
+    <svg viewBox="-8 -8 416 416" style="width:240px;">
+      <rect x="0" y="0" width="400" height="400" fill="#101A2B"/>
+      <rect x="50" y="342" width="300" height="26" fill="#5B6B82"/>
+      <rect x="170" y="60" width="60" height="90" fill="#D6DEEB"/>
+      <polygon points="200,0 230,60 170,60" fill="#E04A4A"/>
+      <circle cx="200" cy="85" r="13" fill="#5AA9E6"/>
+      <text x="20" y="40" fill="#7BD88F" font-size="26" font-family="monospace">ALTITUDE 300</text>
+      <text x="200" y="230" fill="#F2B705" font-size="24" font-family="monospace"
+            text-anchor="middle">press any key</text>
+      <rect x="0" y="0" width="400" height="400" fill="none" stroke="#5A7391" stroke-width="3"/>
+    </svg>
+    <p style="font-size:.82em; margin:0;">A readout.<br>
+      <span style="color:var(--chalk-dim)">And a key that puts it back.</span></p>
+  </div>
+  <aside class="notes">
+    TWO MINUTES. Run the finished sketch if you have it - falling, a live number
+    counting, and a key that snaps it back to the top.
+
+    THE RESET IS THE PART THEY WILL WANT. Right now their rocket falls once and
+    they have to reload the page. By the end of today they can press a key.
+  </aside>
+</section>
+
+<style>
+  .demo { display: grid; grid-template-columns: 1fr 430px; gap: 40px;
+          align-items: center; margin-top: 6px; }
+  .demo iframe { width: 430px; height: 430px; border: 0; border-radius: 8px;
+                 background: #18263C; }
+  .demo3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 22px;
+           margin-top: 12px; }
+  .demo3 .js-demo { display: block; }
+  .demo3 iframe { width: 100%; aspect-ratio: 1; border: 0; border-radius: 8px;
+                  background: #18263C; }
+  .demo3 .cap { font: 600 19px/1.3 var(--font-mono); color: var(--chalk-dim);
+                text-align: center; margin-top: 8px; }
+</style>
+<!-- ========================= REVIEW PANES ========================= -->
+<section>
+  <span class="eyebrow">Yesterday, running</span>
+  <h3 style="font-size:1.22em;">Three things you could already build</h3>
+  <div class="demo3">
+    <div class="js-demo">
+      <iframe class="demo-frame" title="shadow"></iframe>
+      <div class="cap">shadow</div>
+      <textarea class="demo-code" style="display:none;">
+function setup() {
+  createCanvas(400, 400);
+  rectMode(CENTER);
+}
+
+function draw() {
+  background(24, 38, 60);
+  noStroke();
+
+
+  fill(10, 15, 25);
+
+  let shadowSize = mouseY / 4 + 20;
+
+  rect(mouseX, 370, shadowSize, 8);
+
+  rect(mouseX - shadowSize / 2, 365, shadowSize / 2, 5);
+  rect(mouseX + shadowSize / 2, 365, shadowSize / 2, 5);
+
+  ellipse(mouseX - shadowSize, 363, shadowSize, 5);
+  ellipse(mouseX + shadowSize, 363, shadowSize, 5);
+
+
+
+  fill(214, 222, 235);
+  rect(mouseX, mouseY, 60, 24);
+
+  fill(224, 74, 74);
+  circle(mouseX, mouseY + 18, 16);
+
+  fill(136, 148, 168);
+  rect(mouseX - 48, mouseY - 14, 40, 6);
+
+  rect(mouseX + 48, mouseY - 14, 40, 6);
+
+  fill(90, 169, 230);
+  ellipse(mouseX - 68, mouseY - 18, 80, 8);
+  ellipse(mouseX + 68, mouseY - 18, 80, 8);
+}</textarea>
+    </div>
+    <div class="js-demo">
+      <iframe class="demo-frame" title="camera light"></iframe>
+      <div class="cap">camera light</div>
+      <textarea class="demo-code" style="display:none;">
+function setup() {
+  createCanvas(400, 400);
+  rectMode(CENTER);
+}
+
+function draw() {
+  background(24, 38, 60);
+  noStroke();
+
+
+  fill(255, 80, 80, 40);
+
+  triangle(
+    mouseX - 40, 370,
+    mouseX + 40, 370,
+    mouseX, mouseY + 25
+  );
+
+
+  let lightSize = mouseY / 3 + 30;
+
+  fill(255, 80, 80, 100);
+  ellipse(mouseX, 370, lightSize, 12);
+
+
+
+
+
+
+
+  fill(214, 222, 235);
+  rect(mouseX, mouseY, 60, 24);
+
+  fill(224, 74, 74);
+  circle(mouseX, mouseY + 18, 16);
+
+  fill(136, 148, 168);
+  rect(mouseX - 48, mouseY - 14, 40, 6);
+
+  rect(mouseX + 48, mouseY - 14, 40, 6);
+
+  fill(90, 169, 230);
+  ellipse(mouseX - 68, mouseY - 18, 80, 8);
+  ellipse(mouseX + 68, mouseY - 18, 80, 8);
+}</textarea>
+    </div>
+    <div class="js-demo">
+      <iframe class="demo-frame" title="two drones"></iframe>
+      <div class="cap">two drones</div>
+      <textarea class="demo-code" style="display:none;">
+function setup() {
+  createCanvas(400, 400);
+  rectMode(CENTER);
+}
+
+function draw() {
+  background(24, 38, 60);
+  noStroke();
+
+  fill(10, 15, 25);
+  ellipse(mouseX, 370, 80, 12);
+
+
+  fill(214, 222, 235);
+  rect(mouseX, mouseY, 60, 24);
+
+  fill(224, 74, 74);
+  circle(mouseX, mouseY + 18, 16);
+
+  fill(136, 148, 168);
+  rect(mouseX - 48, mouseY - 14, 40, 6);
+
+  rect(mouseX + 48, mouseY - 14, 40, 6);
+
+  fill(90, 169, 230);
+  ellipse(mouseX - 68, mouseY - 18, 80, 8);
+  ellipse(mouseX + 68, mouseY - 18, 80, 8);
+
+
+
+  fill(214, 222, 235);
+  rect(mouseX - 100, mouseY, 60, 24);
+
+  fill(224, 74, 74);
+  circle(mouseX - 100, mouseY + 18, 16);
+
+  fill(136, 148, 168);
+  rect(mouseX - 148, mouseY - 14, 40, 6);
+
+  rect(mouseX - 52, mouseY - 14, 40, 6);
+
+  fill(90, 169, 230);
+  ellipse(mouseX - 168, mouseY - 18, 80, 8);
+  ellipse(mouseX - 32, mouseY - 18, 80, 8);
+}</textarea>
+    </div>
+  </div>
+  <p style="font-size:.82em; margin-top:14px;">Every part of every one is an
+    <strong>offset</strong> from <code>mouseX</code> and <code>mouseY</code>.</p>
+  <aside class="notes">
+    TIME
+    4 min
+
+    SAY
+    All three run at once - move the mouse and all three follow.
+    Ask which one is doing something the others are not. The shadow and
+    the light both compute a size from mouseY; the two drones only use
+    offsets.
+    That is the whole of yesterday in one picture: pick a point, measure
+    everything from it.
+
+    WATCH FOR
+    Three sketches at 60fps on one slide. If the room's machines are slow,
+    move on rather than leaving it up.
+    All three files are in the repo if anyone wants to pull one apart.
+  </aside>
+</section>
+
+<!-- ========================= WARM-UP ========================= -->
+<section>
+  <span class="eyebrow">Warm-up &middot; on your board &middot; 4 minutes</span>
+  <h3 style="font-size:1.22em;">Fill in the blanks</h3>
+  <div style="display:grid; grid-template-columns:1fr 300px; gap:44px; align-items:center; margin-top:4px;">
+    <div>
+      <p style="font-size:.78em; color:var(--chalk-dim); margin:0 0 .6em;">
+        The drone body is at <code>mouseX, mouseY</code>.</p>
+      <div style="font:600 24px/2.1 var(--font-mono); color:var(--chalk);">
+        <div>left rotor &nbsp;<code style="color:var(--chalk-dim)">ellipse(____, ____, 56, 8)</code>
+          <span class="fragment" style="color:var(--amber)">mouseX - 68, mouseY - 18</span></div>
+        <div>camera &nbsp;<code style="color:var(--chalk-dim)">circle(____, ____, 16)</code>
+          <span class="fragment" style="color:var(--amber)">mouseX, mouseY + 18</span></div>
+        <div>which numbers <strong>never</strong> change?
+          <span class="fragment" style="color:var(--amber)">56, 8, 16 &mdash; the sizes</span></div>
+      </div>
+    </div>
+    <svg viewBox="-8 -8 416 416" style="width:300px;">
+      <rect x="0" y="0" width="400" height="400" fill="#18263C"/>
+      <g transform="translate(200, 200)">
+        <rect x="-68" y="-18" width="40" height="6" fill="#8894A8"/>
+        <rect x="28" y="-18" width="40" height="6" fill="#8894A8"/>
+        <ellipse cx="-68" cy="-18" rx="28" ry="4" fill="#5AA9E6"/>
+        <ellipse cx="68" cy="-18" rx="28" ry="4" fill="#5AA9E6"/>
+        <rect x="-30" y="-12" width="60" height="24" rx="4" fill="#D6DEEB"/>
+        <circle cx="0" cy="18" r="8" fill="#E04A4A"/>
+      </g>
+      <circle cx="200" cy="200" r="7" fill="#ED225D"/>
+      <rect x="0" y="0" width="400" height="400" fill="none" stroke="#5A7391" stroke-width="3"/>
+    </svg>
+  </div>
+  <aside class="notes">
+    FOUR MINUTES. Straight review of yesterday.
+
+    THE THIRD QUESTION IS THE ONE THAT MATTERS. Sizes never follow the point.
+    A board that lists 68 or 18 as unchanging has confused offsets with sizes.
+
+    Reveal one at a time.
+  </aside>
+</section>
+
+<!-- ========================= CONSOLE ========================= -->
+<section>
+  <span class="eyebrow">Before anything is on screen</span>
+  <h3 style="font-size:1.22em;">A window only you can see</h3>
+  <div style="display:grid; grid-template-columns:1fr 1fr; gap:44px; margin-top:10px;">
+    <div>
+      <pre style="margin:0;"><code class="language-javascript" data-trim data-line-numbers="1|3">
+console.log(landerY);
+
+console.log("got here");
+      </code></pre>
+      <div class="fragment" style="font-size:.78em; color:var(--chalk-dim); margin-top:18px; line-height:1.6;">
+        It prints underneath the editor, in the
+        <strong style="color:var(--chalk)">console</strong> &mdash; not on the
+        canvas.
+      </div>
+    </div>
+    <div>
+      <div style="font:600 20px/1 var(--font-mono); color:var(--signal);
+                  letter-spacing:.1em; text-transform:uppercase; margin-bottom:12px;">
+        reach for it when</div>
+      <ul style="font-size:.8em; line-height:1.55; margin:0; padding-left:20px;">
+        <li class="fragment">nothing moves &mdash; <strong>is the variable
+          actually changing?</strong></li>
+        <li class="fragment">nothing happens &mdash; <strong>is this line
+          running at all?</strong></li>
+        <li class="fragment">it looks wrong &mdash; <strong>what is in there,
+          right now?</strong></li>
+      </ul>
+    </div>
+  </div>
+  <p class="fragment" style="font-size:.86em; color:var(--amber); margin-top:22px;">
+    The console is for <strong>you</strong>. The canvas is for the
+    <strong>user</strong>.
+  </p>
+  <aside class="notes">
+    TIME
+    4 min
+
+    SAY
+    Type console.log(landerY) into the falling rocket and run it. Numbers
+    pour down the console, sixty a second. That is the first time they see
+    inside a variable.
+    Take the three uses one at a time.
+    The first one is the 4A bug: let inside draw() means nothing moves.
+    Log the variable and watch it not change - that is how you find it
+    instead of guessing.
+    The second is for code that seems dead. console.log("got here") inside
+    a block tells you whether it runs.
+
+    SAY
+    The last line is the bridge to the rest of the lesson. Both put a value
+    somewhere you can read it. Only one of them is meant to be seen by
+    anybody else.
+
+    WATCH FOR
+    Students who clear the console and expect it to stay clear. It refills
+    immediately - draw() is still running.
+    More debugging and the vocabulary for it is next lesson.
+  </aside>
+</section>
+
+<!-- ========================= TEXT ========================= -->
+<section>
+  <span class="eyebrow">The new thing</span>
+  <h3 style="font-size:1.22em;">Your program can say something</h3>
+  <div style="display:grid; grid-template-columns:1fr 320px; gap:44px; align-items:center; margin-top:4px;">
+    <div>
+      <pre style="margin:0;"><code class="language-javascript" data-trim data-line-numbers="1-3|1|2|3">
+fill(120, 220, 140);
+textSize(24);
+text("ALTITUDE", 20, 40);
+      </code></pre>
+      <div class="fragment" style="font-size:.76em; color:var(--chalk-dim); margin-top:16px; line-height:1.6;">
+        <code>text(what, x, y)</code> &mdash; the words, then
+        <strong style="color:var(--chalk)">where they go</strong>. Same two
+        numbers as everything else.
+      </div>
+      <div class="fragment try" style="font-size:.74em; margin-top:14px;">
+        <b>x, y is the bottom left of the words</b>
+        Not the top. Put it at <code>y = 0</code> and it is off the screen.
+      </div>
+    </div>
+    <svg viewBox="-8 -8 416 416" style="width:320px;">
+      <rect x="0" y="0" width="400" height="400" fill="#18263C"/>
+      <g stroke="#22344F" stroke-width="1">
+        <line x1="100" y1="0" x2="100" y2="400"/><line x1="200" y1="0" x2="200" y2="400"/>
+        <line x1="300" y1="0" x2="300" y2="400"/><line x1="0" y1="100" x2="400" y2="100"/>
+        <line x1="0" y1="200" x2="400" y2="200"/><line x1="0" y1="300" x2="400" y2="300"/>
+      </g>
+      <text x="20" y="40" fill="#78DC8C" font-size="30" font-family="monospace">ALTITUDE</text>
+      <circle cx="20" cy="40" r="8" fill="#ED225D"/>
+      <text x="36" y="76" fill="#ED225D" font-size="22" font-family="monospace">20, 40</text>
+      <rect x="0" y="0" width="400" height="400" fill="none" stroke="#5A7391" stroke-width="3"/>
+    </svg>
+  </div>
+  <aside class="notes">
+    FOUR MINUTES. Four presses.
+
+    THE COLOR COMES FROM fill(). Same setting as shapes - fourth example this
+    unit. Say "same rule" and move on.
+
+    textSize() is the only new setting and it needs no explanation.
+
+    THE CALLOUT IS THE PRACTICAL TRAP. The y is the BASELINE - the bottom of the
+    letters, not the top. text("HI", 20, 0) draws above the canvas and is
+    invisible. Someone will do it.
+
+    Do not teach textAlign or textFont today. They exist, they are in the
+    reference, they are not the lesson.
+  </aside>
+</section>
+
+<!-- ========================= STRINGS ========================= -->
+<section>
+  <span class="eyebrow">Quotes change what a thing is</span>
+  <h3 style="font-size:1.22em;">These two lines are not the same</h3>
+  <div style="display:grid; grid-template-columns:1fr 320px; gap:44px; align-items:center; margin-top:4px;">
+    <div>
+      <pre style="margin:0;"><code class="language-javascript" data-trim data-line-numbers="1|2">
+text(landerY, 20, 40);
+text("landerY", 20, 80);
+      </code></pre>
+      <div class="fragment" style="font-size:.76em; color:var(--chalk-dim); margin-top:18px; line-height:1.7;">
+        Without quotes, <code>landerY</code> is a
+        <strong style="color:var(--chalk)">variable</strong> &mdash; you get what
+        is in it.
+      </div>
+      <div class="fragment" style="font-size:.76em; color:var(--chalk-dim); margin-top:8px; line-height:1.7;">
+        With quotes it is a <strong style="color:var(--chalk)">string</strong>
+        &mdash; the characters themselves, nothing more.
+      </div>
+      <div class="fragment try" style="font-size:.74em; margin-top:14px;">
+        <b>Joining them</b>
+        <code>text("ALT " + landerY, 20, 40)</code>
+      </div>
+    </div>
+    <svg viewBox="-8 -8 416 416" style="width:320px;">
+      <rect x="0" y="0" width="400" height="400" fill="#18263C"/>
+      <text x="20" y="60" fill="#78DC8C" font-size="34" font-family="monospace">210</text>
+      <text x="20" y="130" fill="#78DC8C" font-size="34" font-family="monospace">landerY</text>
+      <text x="20" y="230" fill="#8FA3BC" font-size="22" font-family="monospace">a number</text>
+      <text x="20" y="300" fill="#8FA3BC" font-size="22" font-family="monospace">a string</text>
+      <path d="M150 50 H300 V216" stroke="#5A7391" stroke-width="2" fill="none"/>
+      <path d="M200 120 H330 V286" stroke="#5A7391" stroke-width="2" fill="none"/>
+      <rect x="0" y="0" width="400" height="400" fill="none" stroke="#5A7391" stroke-width="3"/>
+    </svg>
+  </div>
+  <aside class="notes">
+    THREE MINUTES, AND THIS IS THE MISCONCEPTION OF THE LESSON.
+
+    A STRING IS A NEW KIND OF VALUE. Everything so far has been a number. A
+    string is characters, in order, and the quotes are what make it one.
+
+    ASK BEFORE PRESSING: "what does the second line put on the screen?" Someone
+    will say 210. It says the word landerY.
+
+    "200" AND 200 ARE DIFFERENT THINGS. Worth one sentence. You cannot do
+    arithmetic on the first one - "200" + 1 gives "2001", because joining is
+    what + does to strings. Show it if someone asks; do not go looking for it.
+
+    THE PLUS SIGN JOINS STRINGS. That is called concatenation and it is CED
+    topic 3.4. They need it for the readout in five minutes, so teach it as a
+    tool, not a topic.
+  </aside>
+</section>
+
+<!-- ========================= ROBOT 1 ========================= -->
+<section>
+  <span class="eyebrow">Together &middot; you talk, I type</span>
+  <h3 style="font-size:1.22em;">Put a readout on the robot</h3>
+  <div style="display:grid; grid-template-columns:1fr 300px; gap:44px; align-items:center; margin-top:4px;">
+    <div>
+      <pre style="margin:0;"><code class="language-javascript" data-trim data-line-numbers="1-2|3">
+fill(120, 220, 140);
+textSize(22);
+text("HEIGHT " + headY, 20, 34);
+      </code></pre>
+      <div class="fragment try" style="font-size:.74em; margin-top:16px;">
+        <b>Watch the number while it moves</b>
+        You have never seen the inside of a variable before.
+      </div>
+    </div>
+    <svg viewBox="-8 -8 416 416" style="width:300px;">
+      <rect x="0" y="0" width="400" height="400" fill="#18263C"/>
+      <rect x="120" y="140" width="160" height="150" rx="4" fill="#BEC8D7"/>
+      <circle cx="165" cy="190" r="17" fill="#4682C8"/>
+      <circle cx="235" cy="190" r="17" fill="#4682C8"/>
+      <ellipse cx="200" cy="257" rx="45" ry="15" fill="#283246"/>
+      <text x="20" y="34" fill="#78DC8C" font-size="24" font-family="monospace">HEIGHT 215</text>
+      <rect x="0" y="0" width="400" height="400" fill="none" stroke="#5A7391" stroke-width="3"/>
+    </svg>
+  </div>
+  <aside class="notes">
+    FOUR MINUTES. Open the robot starter and type it as they follow.
+
+    PUT THE TEXT LAST IN draw() so it is not covered by the head. Order, fifth
+    time.
+
+    THE CALLOUT IS WORTH SAYING PROPERLY. Until now a variable has been
+    invisible - they trusted that headY was changing because the robot moved.
+    Now they can watch the number itself. That is a debugging tool they will use
+    all year: when something is wrong, put the variable on the screen and look
+    at it.
+
+    ASK: why does it say HEIGHT 215 and not HEIGHT headY? Because there are no
+    quotes around the second one.
+  </aside>
+</section>
+
+<!-- ========================= COLOR ========================= -->
+<section>
+  <span class="eyebrow">One more kind of value</span>
+  <h3 style="font-size:1.22em;">A variable can hold a color</h3>
+  <div style="display:grid; grid-template-columns:1fr 300px; gap:44px; align-items:center; margin-top:4px;">
+    <div>
+      <pre style="margin:0;"><code class="language-javascript" data-trim data-line-numbers="1|3-4">
+let hullColor = color(214, 222, 235);
+
+fill(hullColor);
+rect(200, 195, 60, 90);
+      </code></pre>
+      <div class="fragment" style="font-size:.76em; color:var(--chalk-dim); margin-top:16px; line-height:1.6;">
+        <code>color()</code> takes the same numbers as
+        <code>fill()</code> &mdash; three for RGB, one for gray, four with alpha.
+      </div>
+      <div class="fragment try" style="font-size:.74em; margin-top:12px;">
+        <b>Why bother</b>
+        Change the hull color in one place instead of six.
+      </div>
+    </div>
+    <svg viewBox="-8 -8 416 416" style="width:300px;">
+      <rect x="0" y="0" width="400" height="400" fill="#18263C"/>
+      <rect x="40" y="60" width="150" height="90" rx="6" fill="#D6DEEB"/>
+      <rect x="40" y="180" width="150" height="90" rx="6" fill="#D6DEEB"/>
+      <rect x="40" y="300" width="150" height="60" rx="6" fill="#D6DEEB"/>
+      <text x="220" y="112" fill="#8FA3BC" font-size="22" font-family="monospace">hullColor</text>
+      <text x="220" y="232" fill="#8FA3BC" font-size="22" font-family="monospace">hullColor</text>
+      <text x="220" y="338" fill="#8FA3BC" font-size="22" font-family="monospace">hullColor</text>
+      <rect x="0" y="0" width="400" height="400" fill="none" stroke="#5A7391" stroke-width="3"/>
+    </svg>
+  </div>
+  <aside class="notes">
+    THREE MINUTES, AND THIS IS THE FIRST CUT IF YOU ARE BEHIND. It is on the
+    reference sheet either way.
+
+    THE POINT IS NOT color() - it is that a variable holds more than numbers.
+    Numbers, strings, colors. The CED lists numbers, Booleans, lists and strings
+    as the types; color is p5's own, and saying so is honest.
+
+    THE CALLOUT IS THE REAL ARGUMENT and it is the second reason for variables
+    from Lesson 4B: the same value in several places. Six shapes share a hull
+    color; one variable changes all six.
+
+    Do not go into color objects or brightness. Not today, not this year.
+  </aside>
+</section>
+
+<!-- ========================= EVENTS ========================= -->
+<section>
+  <span class="eyebrow">The other new thing</span>
+  <h3 style="font-size:1.22em;">Code that runs when something happens</h3>
+  <div style="display:grid; grid-template-columns:1fr 1fr; gap:40px; margin-top:8px;">
+    <div>
+      <pre style="margin:0;"><code class="language-javascript" data-trim>
+function keyPressed() {
+  headY = 90;
+}
+      </code></pre>
+      <p style="font-size:.74em; color:var(--chalk-dim); margin-top:10px;">
+        runs once, when a key goes down</p>
+    </div>
+    <div>
+      <pre style="margin:0;"><code class="language-javascript" data-trim>
+function mousePressed() {
+  speed = 0;
+}
+      </code></pre>
+      <p style="font-size:.74em; color:var(--chalk-dim); margin-top:10px;">
+        runs once, when the mouse is clicked</p>
+    </div>
+  </div>
+  <div class="fragment try" style="font-size:.76em; margin-top:18px;">
+    <b>These sit beside <code>draw()</code>, not inside it</b>
+    <code>draw()</code> runs sixty times a second, whatever happens.
+    These run <em>only</em> when the thing happens.
+  </div>
+  <aside class="notes">
+    FOUR MINUTES.
+
+    THEY ALREADY KNOW WHAT A FUNCTION LOOKS LIKE - setup() and draw() have been
+    on every sketch since Lesson 1. These are two more of the same shape. Say
+    that; it is less new than it looks.
+
+    THE CALLOUT IS THE STRUCTURAL POINT and students get it wrong by nesting
+    them inside draw(). Draw them on the board as three separate blocks, side by
+    side, all at the same level.
+
+    NAMES ARE FIXED. p5 looks for exactly keyPressed and mousePressed. A
+    capital letter in the wrong place and nothing happens, with no error. Same
+    silent failure as the = trap.
+
+    If someone asks how to tell WHICH key: the variable is called key, and it is
+    a string. Mention it only if asked - one key doing one thing is enough today.
+  </aside>
+</section>
+
+<!-- ========================= ROBOT 2 ========================= -->
+<section>
+  <span class="eyebrow">Together &middot; back to the robot</span>
+  <h3 style="font-size:1.22em;">A key that puts it back</h3>
+  <div style="display:grid; grid-template-columns:1fr 300px; gap:44px; align-items:center; margin-top:4px;">
+    <div>
+      <pre style="margin:0;"><code class="language-javascript" data-trim data-line-numbers="1-3|5-7">
+function draw() {
+  headY = headY + 1;
+}
+
+function keyPressed() {
+  headY = 90;
+}
+      </code></pre>
+      <div class="fragment try" style="font-size:.74em; margin-top:14px;">
+        <b>One line resets everything</b>
+        Every part follows <code>headY</code>, so putting it back puts the whole
+        robot back.
+      </div>
+    </div>
+    <svg viewBox="-8 -8 416 416" style="width:300px;">
+      <rect x="0" y="0" width="400" height="400" fill="#18263C"/>
+      <rect x="120" y="240" width="160" height="150" rx="4" fill="#BEC8D7" opacity=".35"/>
+      <rect x="120" y="40" width="160" height="150" rx="4" fill="#BEC8D7"/>
+      <circle cx="165" cy="90" r="17" fill="#4682C8"/>
+      <circle cx="235" cy="90" r="17" fill="#4682C8"/>
+      <ellipse cx="200" cy="157" rx="45" ry="15" fill="#283246"/>
+      <path d="M330 300 V120" stroke="#F2B705" stroke-width="4" fill="none"
+            marker-end="url(#up)"/>
+      <defs><marker id="up" markerWidth="8" markerHeight="8" refX="4" refY="4"
+        orient="auto"><path d="M0 8L4 0L8 8Z" fill="#F2B705"/></marker></defs>
+      <rect x="0" y="0" width="400" height="400" fill="none" stroke="#5A7391" stroke-width="3"/>
+    </svg>
+  </div>
+  <aside class="notes">
+    FOUR MINUTES. Same sketch. Add the function below draw(), run it, hold a key.
+
+    THE CALLOUT IS THE PAYOFF FOR LESSON 4A. Because every part of the robot is
+    an offset from headY, resetting one variable resets the whole thing. A robot
+    built with fixed numbers could not be reset at all.
+
+    NAME IT: this is the RESET PATTERN - a handler that puts several variables
+    back to their starting values. It comes back in Unit 5 when they refactor,
+    and again in the Create task. Patterns they can name are patterns they can
+    reuse.
+
+    HOLD THE KEY DOWN and it fires repeatedly - that is the operating system
+    repeating the key, not p5. Worth ten seconds if someone notices.
+
+    ASK: what would you add to also reset the speed? Nothing yet - speed is
+    still a literal 1 in draw(). That is a good thing to notice and it points at
+    the rocket task.
+  </aside>
+</section>
+
+<!-- ========================= OBJECTIVES ========================= -->
+<section>
+  <span class="eyebrow">So, today</span>
+  <h2>By the end of this period</h2>
+  <ul style="font-size:.95em;">
+    <li class="fragment">You can put words and numbers on the canvas with <code>text()</code></li>
+    <li class="fragment">You can say what quotes do &mdash; and what a <strong>string</strong> is</li>
+    <li class="fragment">You can write code that runs <strong>when a key or the mouse is pressed</strong></li>
+  </ul>
+  <aside class="notes">
+    Ninety seconds. Same three come back as the closing questions.
+  </aside>
+</section>
+
+<!-- ========================= GET THE STARTER ========================= -->
+<style>
+  .linkcard { background: var(--ink-2); border: 1px solid var(--wire);
+              border-left: 6px solid var(--amber); border-radius: 8px;
+              padding: 15px 22px 17px; margin-top: 14px; }
+  .linkcard .u { font: 700 30px/1.2 var(--font-mono); color: var(--amber); word-break: break-all; }
+  .linkcard .also { font-size: 20px; color: var(--chalk-dim); margin-top: 8px; }
+</style>
+<section>
+  <span class="eyebrow">Before you build</span>
+  <h2>Get the starter</h2>
+  <ol style="font-size:.88em; line-height:1.45;">
+    <li class="fragment">Open <code>u1l05-starter.js</code> on GitHub &rarr; <strong>Copy raw file</strong></li>
+    <li class="fragment">p5 editor: <strong>File &rarr; New</strong>, paste over everything</li>
+    <li class="fragment"><strong>Rename</strong> to <code>u1l05-readout</code> and save</li>
+  </ol>
+  <div class="linkcard">
+    <div class="u">github.com/emrgem/26-27-APCSP-STARTER-FILES</div>
+    <div class="also">Also linked in Google Classroom</div>
+  </div>
+  <aside class="notes">
+    The falling rocket from last lesson, with a speed variable this time so the
+    reset has something to reset.
+  </aside>
+</section>
+
+<!-- ========================= THE TASK ========================= -->
+<section>
+  <span class="eyebrow">On your own &middot; 8 minutes</span>
+  <h3 style="font-size:1.22em;">A readout and a reset</h3>
+  <div style="display:grid; grid-template-columns:1fr 300px; gap:40px; align-items:center; margin-top:4px;">
+    <div>
+      <ol style="font-size:.82em; line-height:1.55;">
+        <li>Show <code>ALTITUDE</code> and the current <code>landerY</code>
+          in the top left</li>
+        <li>Make any key send the rocket back to the top</li>
+        <li>Make the mouse <strong>stop</strong> it where it is</li>
+      </ol>
+      <div class="try" style="font-size:.74em; margin-top:14px;">
+        <b>For 3</b>
+        What would you set <code>speed</code> to?
+      </div>
+      <p style="font-size:.76em; color:var(--amber); margin-top:.9em;">
+        Finished? Six <strong>puzzles</strong> at the bottom of the file.
+      </p>
+    </div>
+    <svg viewBox="-8 -8 416 416" style="width:300px;">
+      <rect x="0" y="0" width="400" height="400" fill="#101A2B"/>
+      <rect x="50" y="342" width="300" height="26" fill="#5B6B82"/>
+      <rect x="170" y="180" width="60" height="90" fill="#D6DEEB"/>
+      <polygon points="200,120 230,180 170,180" fill="#E04A4A"/>
+      <circle cx="200" cy="205" r="13" fill="#5AA9E6"/>
+      <rect x="170" y="270" width="8" height="30" fill="#9AA9BD"/>
+      <rect x="222" y="270" width="8" height="30" fill="#9AA9BD"/>
+      <text x="20" y="36" fill="#78DC8C" font-size="24" font-family="monospace">ALTITUDE 120</text>
+      <rect x="0" y="0" width="400" height="400" fill="none" stroke="#5A7391" stroke-width="3"/>
+    </svg>
+  </div>
+  <aside class="notes">
+    EIGHT MINUTES. Circulate.
+
+    WATCH FOR
+    - text() called before the shapes, so it is painted over. Order, again.
+    - No fill() before text(), so it inherits whatever color the last shape had.
+      Usually invisible against the background.
+    - text("landerY") with quotes - shows the word, not the number.
+    - keyPressed written inside draw(). Nothing happens and there is no error.
+    - keypressed or KeyPressed. p5 never finds it. Silent, and the hardest of
+      these to spot - check capitalization first when a handler does nothing.
+
+    NUMBER 3 IS THE INTERESTING ONE. speed = 0 freezes it. Some will try to
+    stop draw() itself or look for a pause function. Point them back at the
+    variable - the rocket moves because speed is not zero, so that is the thing
+    to change.
+
+    IF SOMEONE ASKS whether the altitude should count DOWN as it falls: yes,
+    that is more realistic, and 400 - landerY does it. Good extension, not a
+    requirement.
+
+    THE PUZZLES ARE THE MIDDLE RUNG. Six short problems at the bottom of the
+    starter, one or two lines each, independent of each other. They come AFTER
+    the task works - the task proves they can do it once, the puzzles make it
+    automatic.
+
+    Nobody has to finish them. A student who does two and stops has still had
+    two more reps than they would have had waiting.
+
+    PUZZLE 3 NEEDS AN if, which is next lesson. Someone will try it and ask.
+    That is a good moment - tell them it is Lesson 6 and show them the two
+    lines.
+  </aside>
+</section>
+
+<!-- ========================= BOARDS ========================= -->
+<section>
+  <span class="eyebrow">On your board &middot; 4 minutes</span>
+  <h3 style="font-size:1.22em;">Write the two handlers</h3>
+  <div style="display:grid; grid-template-columns:1fr 1fr; gap:40px; align-items:start; margin-top:4px;">
+    <div>
+      <pre style="margin:0;"><code class="language-javascript" data-trim>
+let x = 50, y = 100, r = 50;
+let speed = 0;
+
+function draw() {
+  background(220);
+  circle(x, y, r);
+  x = x + speed;
+  r = r + speed / 5;
+}
+      </code></pre>
+    </div>
+    <div>
+      <ol style="font-size:.76em; line-height:1.6;">
+        <li>Any key &rarr; speed goes up by <strong>3</strong></li>
+        <li>Mouse &rarr; everything goes back to the start</li>
+      </ol>
+      <div class="fragment" style="font:600 22px/1.55 var(--font-mono); color:var(--amber);
+           margin-top:16px;">
+        function keyPressed() {<br>
+        &nbsp;&nbsp;speed = speed + 3;<br>
+        }<br><br>
+        function mousePressed() {<br>
+        &nbsp;&nbsp;x = 50; y = 100;<br>
+        &nbsp;&nbsp;r = 50; speed = 0;<br>
+        }
+      </div>
+    </div>
+  </div>
+  <aside class="notes">
+    FOUR MINUTES, AND THIS IS THE SECOND CUT IF YOU ARE BEHIND.
+
+    Groups write both functions. Nothing is running - this is reading a spec and
+    producing code, which is the harder direction.
+
+    THE FIRST ONE catches anyone who writes speed = 3 instead of speed = speed
+    + 3. The spec says "goes up by 3", not "becomes 3". Press a key twice and
+    the difference shows.
+
+    THE SECOND ONE is four assignments and the easy one to under-answer -
+    boards that reset x and y but forget r and speed. Ask what "back to the
+    start" includes.
+
+    Reveal both at once and let them compare.
+  </aside>
+</section>
+
+<!-- ========================= CHECK 1 ========================= -->
+<section>
+  <span class="eyebrow">Check &middot; 1 of 3</span>
+  <h2 style="font-size:1.6em; line-height:1.2;">
+    <code>text("landerY", 20, 40)</code><br>What appears on the canvas?
+  </h2>
+  <p class="fragment" style="font-size:1.25em; color:var(--amber); margin-top:1.1em;">
+    The word <strong>landerY</strong>. Quotes make it a string.
+  </p>
+  <aside class="notes">
+    The misconception of the lesson. If more than a couple miss it, open next
+    lesson with it.
+  </aside>
+</section>
+
+<!-- ========================= CHECK 2 ========================= -->
+<section>
+  <span class="eyebrow">Check &middot; 2 of 3</span>
+  <h2 style="font-size:1.6em; line-height:1.2;">
+    Your <code>keyPressed()</code> does nothing at all. No error. What do you check?
+  </h2>
+  <p class="fragment" style="font-size:1.25em; color:var(--amber); margin-top:1.1em;">
+    Spelling, capital P, and whether it is inside <code>draw()</code>.
+  </p>
+  <aside class="notes">
+    Three silent failures, one symptom. Teach the checklist, not the individual
+    bugs.
+  </aside>
+</section>
+
+<!-- ========================= CHECK 3 ========================= -->
+<section>
+  <span class="eyebrow">Check &middot; 3 of 3</span>
+  <h2 style="font-size:1.6em; line-height:1.2;">
+    Why does resetting <code>landerY</code> move the whole rocket?
+  </h2>
+  <p class="fragment" style="font-size:1.25em; color:var(--amber); margin-top:1.1em;">
+    Every part is written as an offset from it.
+  </p>
+  <aside class="notes">
+    Ties back to Lesson 4A. A drawing built from fixed numbers could not be reset
+    with one line.
+
+    NOTE WHO IS QUIET ON 1 AND 2 on the seating chart.
+  </aside>
+</section>
+
+<!-- ========================= EXAM NOTATION ========================= -->
+<section>
+  <span class="eyebrow">On the AP exam</span>
+  <h3 style="font-size:1.22em;">Showing something to the user</h3>
+  <div style="display:grid; grid-template-columns:1fr 1fr; gap:44px; margin-top:10px;">
+    <div>
+      <div style="font:600 20px/1 var(--font-mono); color:var(--chalk-dim);
+                  letter-spacing:.1em; text-transform:uppercase; margin-bottom:10px;">
+        JavaScript &middot; p5</div>
+      <pre style="margin:0;"><code class="language-javascript" data-trim>
+text("ALT " + landerY, 20, 40);
+      </code></pre>
+    </div>
+    <div>
+      <div style="font:600 20px/1 var(--font-mono); color:var(--signal);
+                  letter-spacing:.1em; text-transform:uppercase; margin-bottom:10px;">
+        Exam Reference Sheet</div>
+      <div style="background:#1E1E1E; border-radius:8px; padding:20px 24px;
+                  font:600 26px/1.8 var(--font-mono); color:#EAF0F7;">
+        DISPLAY(landerY)
+      </div>
+    </div>
+  </div>
+  <p class="fragment" style="font-size:.8em; color:var(--amber); margin-top:16px;">
+    No canvas on the exam &mdash; no x, no y. <code>DISPLAY</code> just shows the
+    value.
+  </p>
+  <aside class="notes">
+    TWO MINUTES.
+
+    The exam has no canvas, so DISPLAY takes one thing and shows it. Everything
+    about position is p5's, not the exam's.
+
+    Exam questions very often end with a DISPLAY and ask what appears. That is
+    skill 4.B again - determine the result of a code segment.
+
+    Strings on the exam: they exist, they are topic 3.4, and joining them is
+    called concatenation. They have now used it.
+  </aside>
+</section>
+
+<!-- ========================= CED ========================= -->
+<section>
+  <span class="eyebrow">Where this fits</span>
+  <h3 style="font-size:1.22em;">3.1 Variables and Assignments &nbsp;&middot;&nbsp; 3.4 Strings</h3>
+  <div style="display:grid; grid-template-columns:auto 1fr; gap:8px 22px;
+       margin-top:16px; align-items:baseline;">
+    <div style="font:700 27px/1.5 var(--font-mono); color:var(--amber);">AAP-1.A</div>
+    <div style="font-size:25px; line-height:1.5; color:var(--chalk);">Represent a value with a variable.</div>
+    <div style="font:700 27px/1.5 var(--font-mono); color:var(--amber);">AAP-2.D</div>
+    <div style="font-size:25px; line-height:1.5; color:var(--chalk);">Evaluate expressions that manipulate strings.</div>
+  </div>
+  <div style="border-top:1px solid var(--wire); margin-top:18px; padding-top:14px;
+       display:grid; grid-template-columns:auto 1fr; gap:6px 22px; align-items:baseline;">
+    <div style="font:700 25px/1.5 var(--font-mono); color:#7BD88F;">4.B</div>
+    <div style="font-size:23px; line-height:1.5; color:var(--chalk-dim);">Determine the result of code segments.</div>
+  </div>
+  <aside class="notes">
+    AAP-1.A.3 lists the types the exam uses: numbers, Booleans, lists and
+    strings. They now have two of the four. Booleans arrive next lesson.
+
+    AAP-2.D.1 is string concatenation - joining two strings end to end. That is
+    the plus sign in the readout.
+
+    p5's color type is not on that list. It is a p5 thing, and saying so is
+    honest rather than confusing.
+
+    Do not read the codes aloud. Point at the topic and move on.
+  </aside>
+</section>
+
+<!-- ========================= EXIT ========================= -->
+<section>
+  <span class="eyebrow">Before you log off</span>
+  <h2>Two things</h2>
+  <ol style="font-size:.9em;">
+    <li>Save your sketch</li>
+    <li>Last line: <code>// TODO:</code> and what you would add next</li>
+  </ol>
+  <p style="font-size:.8em; color:var(--chalk-dim); margin-top:1em;">
+    Tomorrow: how to make it stop by itself.
+  </p>
+  <aside class="notes">
+    NOTHING TO TURN IN.
+
+    Post u1l05-solution.js to Classroom after the period.
+
+    THE TEASE. They can stop the rocket by clicking, but the program still
+    cannot decide anything on its own. Next lesson it asks a question.
+  </aside>
+</section>
+
+</div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/plugin/highlight/highlight.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/plugin/notes/notes.js"></script>
+
+<script>
+/* ===========================================================================
+   1. SYNTAX HIGHLIGHTING FOR THE EDITABLE CODE
+   A <textarea> renders one color and nothing can change that. So the visible
+   colors come from a div underneath, and the textarea on top is transparent
+   with only its caret showing. The two must share identical font metrics or
+   the cursor drifts away from the letters.
+   =========================================================================== */
+
+function esc(s) {
+  return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+
+/* Small hand-rolled tokenizer. Beginner p5.js only — no regex literals, no
+   template interpolation — so this stays short and predictable. Colors match
+   VS Code Dark+. */
+function paint(src) {
+  var re = /(\/\/[^\n]*)|("(?:[^"\\]|\\.)*"|'(?:[^'\\]|\\.)*')|\b(function|let|const|var|new)\b|\b(if|else|for|while|return|break|continue)\b|\b(true|false|null|undefined)\b|\b(\d+(?:\.\d+)?)\b|([A-Za-z_$][A-Za-z0-9_$]*)(?=\s*\()|([A-Za-z_$][A-Za-z0-9_$]*)/g;
+  var out = '', last = 0, m;
+  while ((m = re.exec(src)) !== null) {
+    out += esc(src.slice(last, m.index));
+    var cls = m[1] ? 'c-com' : m[2] ? 'c-str' : m[3] ? 'c-kw'
+            : m[4] ? 'c-ctl' : m[5] ? 'c-kw'  : m[6] ? 'c-num'
+            : m[7] ? 'c-fn'  : 'c-var';
+    out += '<span class="' + cls + '">' + esc(m[0]) + '</span>';
+    last = m.index + m[0].length;
+  }
+  /* Trailing newline keeps the last line from being clipped. */
+  return out + esc(src.slice(last)) + '\n';
+}
+
+/* Shrink the font until the code fits the fixed editor height. Floor of 17px:
+   below that it is unreadable from the back of a classroom, so instead of
+   shrinking further we let it scroll and warn in the console. */
+function fitFont(box, ta, hl) {
+  var lines = ta.value.split('\n').length;
+  var avail = box.clientHeight - 34;          /* padding top + bottom */
+  var size = Math.floor(avail / (lines * 1.45));
+  if (size < 17) {
+    console.warn('Lab code is ' + lines + ' lines; will scroll. Trim to 15 or fewer.');
+  }
+  size = Math.max(17, Math.min(26, size));
+  ta.style.fontSize = size + 'px';
+  hl.style.fontSize = size + 'px';
+}
+
+/* ===========================================================================
+   2. LIVE PREVIEW
+   Run wraps the textarea contents in a throwaway HTML page and hands it to the
+   iframe via srcdoc, reloading the frame from scratch. Reloading is what makes
+   it reliable: p5 does not cleanly swap a sketch out from under itself.
+   =========================================================================== */
+
+var P5_URL = 'https://cdn.jsdelivr.net/npm/p5@1.9.4/lib/p5.min.js';
+
+function buildPage(code) {
+  return [
+    '<!DOCTYPE html><html><head><meta charset="utf-8">',
+    '<script src="', P5_URL, '"><\/script>',
+    '<style>',
+      'html,body{margin:0;height:100%;display:grid;place-items:center;',
+      'background:#18263C;overflow:hidden;}',
+      'canvas{max-width:100%;max-height:100%;}',
+      '#err{position:absolute;inset:auto 0 0 0;padding:10px 14px;',
+      'background:#ED225D;color:#fff;font:600 17px/1.4 monospace;display:none;}',
+    '</style></head><body><div id="err"></div>',
+    '<script>',
+      'window.onerror=function(msg,src,line){',
+        'var e=document.getElementById("err");',
+        'e.style.display="block";',
+        'e.textContent="Line "+(line-1)+": "+msg;',
+        'return true;};',
+    '<\/script>',
+    '<script>', code, '<\/script>',
+    '</body></html>'
+  ].join('');
+}
+
+function runLab(lab) {
+  lab.querySelector('.lab-frame').srcdoc = buildPage(lab.querySelector('.lab-code').value);
+}
+
+/* Blanking srcdoc unloads the document, which stops p5's draw loop dead.
+   Without this every sketch in the deck keeps drawing at 60fps in the
+   background and the machine bogs down partway through the period. */
+function stopLab(lab) {
+  lab.querySelector('.lab-frame').srcdoc = '';
+}
+
+/* Demo panes: a live sketch with no editor. They reuse buildPage but must
+   not go through the .lab runner, which expects a highlighter and buttons. */
+document.querySelectorAll('.js-demo').forEach(function (demo) {
+  var frame = demo.querySelector('.demo-frame');
+  var code  = demo.querySelector('.demo-code');
+  demo._start = function () { frame.srcdoc = buildPage(code.value); };
+  demo._stop  = function () { frame.srcdoc = ''; };
+});
+
+var pristine = new Map();
+
+document.querySelectorAll('.lab').forEach(function (lab) {
+  var ta  = lab.querySelector('.lab-code');
+  var hl  = lab.querySelector('.hl');
+  var box = lab.querySelector('.editor');
+
+  pristine.set(lab, ta.value);
+
+  function refresh() {
+    hl.innerHTML = paint(ta.value);
+    fitFont(box, ta, hl);
+  }
+  refresh();
+
+  ta.addEventListener('input', refresh);
+  ta.addEventListener('scroll', function () {
+    hl.scrollTop = ta.scrollTop;
+    hl.scrollLeft = ta.scrollLeft;
+  });
+
+  lab.querySelector('[data-run]').addEventListener('click', function () { runLab(lab); });
+
+  lab.querySelector('[data-reset]').addEventListener('click', function () {
+    ta.value = pristine.get(lab);
+    refresh();
+    runLab(lab);
+  });
+
+  /* Reveal ignores keystrokes while a textarea has focus, so arrow keys move
+     the cursor instead of changing slides. Ctrl/Cmd+Enter runs. */
+  ta.addEventListener('keydown', function (e) {
+    if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+      e.preventDefault();
+      runLab(lab);
+    }
+  });
+});
+
+Reveal.initialize({
+  /* True 16:9. Reveal scales this coordinate space to fill the TV, so every
+     size in the CSS above is proportional to the screen, not to a laptop.
+     Do not change these without redoing the type scale. */
+  width: 1280,
+  height: 720,
+  margin: 0.045,
+  minScale: 0.2,
+  maxScale: 2.0,
+  hash: true,
+  slideNumber: 'c/t',
+  transition: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'none' : 'slide',
+  plugins: [ RevealHighlight, RevealNotes ]
+});
+
+Reveal.on('ready', function (e) {
+  var lab = e.currentSlide.querySelector('.lab');
+  if (lab) runLab(lab);
+});
+
+Reveal.on('ready', function (e) {
+  e.currentSlide.querySelectorAll('.js-demo').forEach(function (d) {
+    if (d._start) d._start();
+  });
+});
+
+Reveal.on('slidechanged', function (e) {
+  var leaving = e.previousSlide && e.previousSlide.querySelector('.lab');
+  if (leaving) stopLab(leaving);
+  var arriving = e.currentSlide.querySelector('.lab');
+  if (arriving) runLab(arriving);
+
+  if (e.previousSlide) {
+    e.previousSlide.querySelectorAll('.js-demo').forEach(function (d) {
+      if (d._stop) d._stop();
+    });
+  }
+  e.currentSlide.querySelectorAll('.js-demo').forEach(function (d) {
+    if (d._start) d._start();
+  });
+});
+</script>
+</body>
+</html>

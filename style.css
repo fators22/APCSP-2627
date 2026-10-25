@@ -1,0 +1,131 @@
+/* ===== Color + type tokens (edit these to restyle the whole site) ===== */
+:root {
+  --paper: #FFFFFF;
+  --bg: #FFF4CC;
+  --grid: #F6E2A0;
+  --surface: #FFF8E1;
+  --ink: #2B2B2B;
+  --muted: #5E5A50;
+  --teal: #2B2B2B;
+  --gold: #F2B705;
+  --gold-deep: #C99400;
+  --marker: #F2B705;
+  --line: #E8D9A8;
+  --head: "Lilita One", "Arial Black", system-ui, sans-serif;
+  --body: "Atkinson Hyperlegible", "Segoe UI", system-ui, sans-serif;
+  --mono: ui-monospace, "Cascadia Code", Consolas, monospace;
+  color-scheme: light;
+}
+
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+
+body {
+  margin: 0;
+  font: 1.0625rem/1.6 var(--body);
+  color: var(--ink);
+  background-color: var(--bg);
+  /* graph-paper background */
+  background-image:
+    linear-gradient(var(--grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+  background-size: 28px 28px;
+}
+
+a { color: var(--ink); text-decoration-color: var(--gold); text-decoration-thickness: 3px; text-underline-offset: 3px; }
+a:hover { text-decoration-color: var(--gold-deep); }
+a:focus-visible, button:focus-visible { outline: 3px solid var(--marker); outline-offset: 2px; }
+code { font-family: var(--mono); font-size: .92em; background: var(--surface); padding: .1em .35em; border-radius: 4px; }
+
+.wrap { max-width: 1040px; margin: 0 auto; padding: 0 1.25rem; }
+
+/* ===== Top bar ===== */
+.topbar { background: var(--ink); border-bottom: 4px solid var(--gold); }
+.topbar .wrap { display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding-block: .75rem; flex-wrap: wrap; }
+.brand { font: 400 1.5rem/1 var(--head); color: var(--gold); text-decoration: none; }
+.topbar nav { display: flex; gap: 1.25rem; flex-wrap: wrap; }
+.topbar nav a { color: #FFFFFF; text-decoration: none; font-weight: 700; }
+.topbar nav a:hover { text-decoration: underline; text-decoration-color: var(--marker); text-decoration-thickness: 4px; }
+
+/* ===== Hero: live p5.js canvas ===== */
+.hero { position: relative; border-bottom: 2px solid var(--ink); background: var(--gold); }
+#hero-canvas { height: 360px; width: 100%; cursor: crosshair; }
+#hero-canvas canvas { display: block; }
+.hero-text {
+  position: absolute; left: 0; right: 0; bottom: 1.5rem; pointer-events: none;
+}
+.hero-text .card {
+  display: inline-block; background: var(--paper); border: 2px solid var(--ink);
+  padding: 1rem 1.25rem; max-width: 34rem; pointer-events: auto;
+  box-shadow: 6px 6px 0 var(--marker);
+}
+.hero h1 { font: 400 clamp(2rem, 5vw, 3.25rem)/1.05 var(--head); margin: 0 0 .4rem; letter-spacing: -.01em; }
+.hero p { margin: 0; color: var(--muted); }
+
+/* ===== Page sections ===== */
+main section { padding: 3rem 0 1rem; }
+h2 { font: 400 1.9rem/1.2 var(--head); margin: 0 0 1rem; }
+h3 { font: 400 1.25rem/1.3 var(--head); margin: 0 0 .25rem; }
+.panel { background: var(--paper); border: 2px solid var(--ink); padding: 1.25rem 1.5rem; }
+.lead { max-width: 65ch; }
+
+/* Announcement box */
+.notice { border-left: 10px solid var(--marker); }
+.notice ul { margin: .5rem 0 0; padding-left: 1.2rem; }
+.notice .date { color: var(--muted); font-size: .95rem; }
+
+/* Unit list (a real sequence, so it's numbered) */
+.units { list-style: none; margin: 0; padding: 0; border: 2px solid var(--ink); background: var(--paper); }
+.units li { border-top: 1px solid var(--line); }
+.units li:first-child { border-top: 0; }
+.units a {
+  display: grid; grid-template-columns: 3.5rem 1fr auto; gap: 1rem; align-items: center;
+  padding: 1rem 1.25rem; color: var(--ink); text-decoration: none;
+}
+.units a:hover { background: var(--surface); }
+.units .num { font: 400 1.5rem/1 var(--head); color: var(--ink); background: var(--gold); width: 2.6rem; height: 2.6rem; display: grid; place-items: center; border: 2px solid var(--ink); }
+.units .desc { color: var(--muted); font-size: .95rem; }
+.status { font-size: .85rem; font-weight: 700; padding: .2rem .6rem; border: 1.5px solid currentColor; border-radius: 999px; white-space: nowrap; }
+.status.now { background: var(--gold); color: var(--ink); border-color: var(--ink); }
+.status.soon { color: var(--muted); }
+.units li.locked a { pointer-events: none; }
+.units li.locked .title { color: var(--muted); }
+
+/* Sketch gallery */
+.gallery { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1.25rem; }
+.sketch { background: var(--paper); border: 2px solid var(--ink); }
+.sketch iframe { display: block; width: 100%; aspect-ratio: 4 / 3; border: 0; border-bottom: 2px solid var(--ink); background: var(--surface); }
+.sketch .meta { padding: .75rem 1rem; }
+.sketch .meta p { margin: 0; color: var(--muted); font-size: .95rem; }
+
+/* Link lists */
+.links { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 0; border: 2px solid var(--ink); background: var(--paper); }
+.links a { display: block; padding: 1rem 1.25rem; border: 1px solid var(--line); text-decoration: none; color: var(--ink); }
+.links a:hover { background: var(--surface); }
+.links strong { display: block; font-family: var(--head); }
+.links span { color: var(--muted); font-size: .95rem; }
+
+/* Tables (unit pages) */
+.table-wrap { overflow-x: auto; border: 2px solid var(--ink); background: var(--paper); }
+table { border-collapse: collapse; width: 100%; min-width: 560px; }
+th, td { text-align: left; padding: .7rem 1rem; border-bottom: 1px solid var(--line); vertical-align: top; }
+th { font-family: var(--head); font-weight: 400; background: var(--gold); }
+tr:last-child td { border-bottom: 0; }
+
+/* Unit page header */
+.page-head { background: var(--surface); border-bottom: 2px solid var(--ink); padding: 2.5rem 0 2rem; }
+.page-head .back { font-weight: 700; }
+.page-head h1 { font: 400 clamp(1.9rem, 4.5vw, 2.75rem)/1.1 var(--head); margin: .5rem 0 .5rem; }
+.page-head p { margin: 0; color: var(--muted); max-width: 65ch; }
+
+footer { margin-top: 3rem; border-top: 4px solid var(--gold); background: var(--ink); color: #E9E4D6; padding: 1.5rem 0; color: var(--muted); font-size: .95rem; }
+
+@media (max-width: 640px) {
+  #hero-canvas { height: 300px; }
+  .units a { grid-template-columns: 2.5rem 1fr; }
+  .units .status { grid-column: 2; justify-self: start; }
+}
+
+/* Materials links in lesson tables */
+td a { line-height: 1.9; }
