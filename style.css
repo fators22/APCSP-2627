@@ -50,24 +50,11 @@ code { font-family: var(--mono); font-size: .92em; background: var(--surface); p
 
 /* ===== Hero: live p5.js canvas ===== */
 /* Hero without canvas */
-.hero {
-  position: static;
-  height: auto;
-  min-height: 0;
-  padding: 2.5rem 0;
-}
-.hero-text {
-  position: static;
-  inset: auto;
-  pointer-events: auto;
-}
-
-#hero-canvas { height: 360px; width: 100%; cursor: crosshair; }
-#hero-canvas canvas { display: block; }
-
+/* ===== Hero ===== */
+.hero { padding: 2.5rem 0; }
 .hero-text .card {
   display: inline-block; background: var(--paper); border: 2px solid var(--ink);
-  padding: 1rem 1.25rem; max-width: 34rem; pointer-events: auto;
+  padding: 1rem 1.25rem; max-width: 34rem;
   box-shadow: 6px 6px 0 var(--marker);
 }
 .hero h1 { font: 400 clamp(2rem, 5vw, 3.25rem)/1.05 var(--head); margin: 0 0 .4rem; letter-spacing: -.01em; }
