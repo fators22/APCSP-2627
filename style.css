@@ -49,12 +49,22 @@ code { font-family: var(--mono); font-size: .92em; background: var(--surface); p
 .topbar nav a:hover { text-decoration: underline; text-decoration-color: var(--marker); text-decoration-thickness: 4px; }
 
 /* ===== Hero: live p5.js canvas ===== */
-.hero { position: relative; border-bottom: 2px solid var(--ink); background: var(--gold); }
+/* Hero without canvas */
+.hero {
+  position: static;
+  height: auto;
+  min-height: 0;
+  padding: 2.5rem 0;
+}
+.hero-text {
+  position: static;
+  inset: auto;
+  pointer-events: auto;
+}
+
 #hero-canvas { height: 360px; width: 100%; cursor: crosshair; }
 #hero-canvas canvas { display: block; }
-.hero-text {
-  position: absolute; left: 0; right: 0; bottom: 1.5rem; pointer-events: none;
-}
+
 .hero-text .card {
   display: inline-block; background: var(--paper); border: 2px solid var(--ink);
   padding: 1rem 1.25rem; max-width: 34rem; pointer-events: auto;
