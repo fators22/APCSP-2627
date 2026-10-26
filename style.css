@@ -116,7 +116,7 @@ tr:last-child td { border-bottom: 0; }
 .page-head h1 { font: 400 clamp(1.9rem, 4.5vw, 2.75rem)/1.1 var(--head); margin: .5rem 0 .5rem; }
 .page-head p { margin: 0; color: var(--muted); max-width: 65ch; }
 
-footer { margin-top: 3rem; border-top: 4px solid var(--gold); background: var(--ink); color: #E9E4D6; padding: 1.5rem 0; color: var(--muted); font-size: .95rem; }
+footer { margin-top: 3rem; border-top: 4px solid var(--gold); background: var(--ink); color: #E9E4D6; padding: 1.5rem 0; font-size: .95rem; }
 
 @media (max-width: 640px) {
   #hero-canvas { height: 300px; }
