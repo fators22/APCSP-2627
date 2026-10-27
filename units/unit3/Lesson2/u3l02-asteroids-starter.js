@@ -62,9 +62,12 @@ function moveShip() {
 //
 //   Step 1. Switch on the for line and the closing }. Fill in the blanks so
 //           the loop runs 200 times. (Start at 0, use <.)
-//   Step 2. Switch on the size, x and y lines.
+//   Step 2. Switch on the size, x and the three y lines.
 //   Step 3. Switch on the circle line. Run. You should see 200 stars.
-//   Step 4. Watch them move. Big stars move faster. Why? Look at the y line.
+//   Step 4. Watch them move. Big stars move faster. Why? Read the y lines:
+//             let y = random(height);          where the star starts
+//             y = y + frameCount * size / 2;   how far it has fallen
+//             y = y % height;                  past the bottom? back to the top
 //
 // CHECK: Change 200 to 20 and Run. Count them. Then change it back.
 // =========================================================================
@@ -73,10 +76,12 @@ function drawStars() {
   noStroke();
   fill(255);
 
-  // for (let i = ___; i < ___; i = i + 1) {
+  // for (let i = ___; i < ___; i++) {
   //   let size = random(1, 3);
   //   let x = random(width);
-  //   let y = (random(height) + frameCount * size * 0.5) % height;
+  //   let y = random(height);
+  //   y = y + frameCount * size / 2;
+  //   y = y % height;
   //   circle(x, y, size);
   // }
 }
@@ -89,10 +94,11 @@ function drawStars() {
 //
 //   Step 1. Switch on the for line and the closing }. The question part
 //           should compare i to rocks.
-//   Step 2. Switch on the four let lines (x, size, speed, y).
+//   Step 2. Switch on the x, size and speed lines and the three y lines.
 //   Step 3. Switch on fill and circle. Run. You should see 6 falling rocks.
 //   Step 4. Make a rock turn red when it touches the ship:
-//           switch on the if / else, and DELETE the plain fill line above it.
+//           switch on the gap line and the if / else, and DELETE the plain
+//           fill line above them.
 //
 // CHECK: Change line 17 to  let rocks = 10;  Run. 10 rocks? Change it back.
 // =========================================================================
@@ -104,12 +110,15 @@ function drawRocks() {
   //   let x = random(40, width - 40);
   //   let size = random(30, 70);
   //   let speed = random(1, 3);
-  //   let y = (random(height) + frameCount * speed) % (height + 100) - 50;
+  //   let y = random(height);
+  //   y = y + frameCount * speed;
+  //   y = y % (height + 100) - 50;
   //
   //   fill(130, 120, 110);
   //
   //   // Step 4
-  //   // if (dist(x, y, shipX, SHIP_Y) < size / 2 + 20) {
+  //   // let gap = dist(x, y, shipX, SHIP_Y);
+  //   // if (gap < size / 2 + 20) {
   //   //   fill(230, 60, 60);
   //   // } else {
   //   //   fill(130, 120, 110);
@@ -125,26 +134,26 @@ function drawRocks() {
 // This while loop works. It draws 3 lives in the top right corner.
 // Your job: turn it into a for loop that draws the same thing.
 //
-//   Step 1. Find the 3 lines that only COUNT: where count starts,
+//   Step 1. Find the 3 lines that only COUNT: where i starts,
 //           the question, and the update. Mark them with // COUNT.
 //   Step 2. Move those 3 jobs into one for header:
-//             for (let count = ___; count < ___; count++) {
-//   Step 3. Delete the old  let count = 0;  and  count = count + 1;
+//             for (let i = ___; i < ___; i++) {
+//   Step 3. Delete the old  let i = 0;  and  i = i + 1;
 //   Step 4. Run. Still 3 lives in the same place?
 //
-// WATCH OUT: x is NOT the counter. Keep  let x = 640;  before the loop
+// WATCH OUT: x is NOT the counter. Keep  let x = 660;  before the loop
 // and keep  x = x + 40;  inside it.
 // =========================================================================
 function drawLives() {
   fill(242, 183, 5);
   noStroke();
 
-  let x = 640;
-  let count = 0;
-  while (count < lives) {
-    triangle(x, 18, x - 10, 42, x + 10, 42);
+  let x = 660;
+  let i = 0;
+  while (i < lives) {
+    circle(x, 30, 22);
     x = x + 40;
-    count = count + 1;
+    i = i + 1;
   }
 }
 
