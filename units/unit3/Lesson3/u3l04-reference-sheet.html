@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Unit 3 Lesson 4 — Nested Loops · Reference Sheet</title>
+<style>
+  @page { size: letter portrait; margin: 0.42in; }
+  * { box-sizing: border-box; }
+  body { font-family: "IBM Plex Sans", system-ui, sans-serif; color: #2B2B2B;
+         max-width: 7.5in; margin: 0 auto; font-size: 9.2pt; line-height: 1.34; }
+  header { border-bottom: 4px solid #2B2B2B; padding-bottom: 6px; margin-bottom: 10px;
+           display: flex; justify-content: space-between; align-items: baseline; gap: 12px; }
+  h1 { font-size: 15pt; margin: 0; }
+  .sub { font-size: 8.8pt; color: #6B5A22; text-align: right; }
+  .intro { font-size: 9.6pt; margin: 0 0 8px; }
+  h2 { font-size: 10.6pt; margin: 9px 0 4px; display: flex; justify-content: space-between; align-items: baseline; }
+  h2 .tag { font: 700 7.6pt/1 "IBM Plex Mono", monospace; letter-spacing: .08em;
+            background: #F4C430; padding: 3px 6px; border-radius: 3px; }
+  code { font-family: "IBM Plex Mono", monospace; font-size: 9.3pt;
+         background: #FBF1CF; padding: 1px 4px; border-radius: 3px; }
+  pre { background: #2B2B2B; color: #F3F3F3; padding: 9px 12px; border-radius: 5px;
+        font-family: "IBM Plex Mono", monospace; font-size: 8.5pt; line-height: 1.42; margin: 4px 0;
+        white-space: pre; }
+  pre .c { color: #9BBF85; } pre .k { color: #E4B0E0; } pre .p { color: #F4C430; }
+  table { width: 100%; border-collapse: collapse; font-size: 8.8pt; margin: 5px 0; }
+  th { background: #2B2B2B; color: #F4C430; text-align: left; padding: 5px 8px; font-size: 8.2pt;
+       text-transform: uppercase; letter-spacing: .06em; }
+  td { padding: 2.5px 7px; border-bottom: 1px solid #E6DDC2; vertical-align: top; }
+  td.mono { font-family: "IBM Plex Mono", monospace; font-size: 9pt; white-space: nowrap; }
+  tr.end td { background: #FBE3E3; }
+  .cols { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+  .box { border: 1.5px solid #2B2B2B; background: #FFFBEA; padding: 5px 9px;
+         border-radius: 5px; font-size: 8.8pt; margin: 5px 0; box-shadow: 3px 3px 0 #2B2B2B; }
+  .box b.lbl { font: 700 7.6pt/1 "IBM Plex Mono", monospace; letter-spacing: .08em; display: block;
+               margin-bottom: 3px; color: #8A6D0B; }
+  .box.warn { background: #FFF1F0; } .box.warn b.lbl { color: #B3261E; }
+  .box.exam b.lbl { color: #1C6B3A; }
+  ol.q { margin: 2px 0 0 18px; padding: 0; font-size: 8.9pt; }
+  ol.q li { margin-bottom: 3px; }
+  .ans { font-size: 8.8pt; color: #4A4A4A; border-top: 1px dashed #B9A86A; margin-top: 6px; padding-top: 5px; }
+  .page2 { page-break-before: always; }
+  .p2note { background: #2B2B2B; color: #F4C430; padding: 6px 10px; border-radius: 4px; font-size: 9pt; margin-bottom: 8px; }
+  footer { margin-top: 12px; padding-top: 7px; border-top: 1px solid #E6DDC2; font-size: 8pt; color: #6B5A22; }
+  @media screen { body { padding: 26px 18px; } .page2 { margin-top: 36px; border-top: 3px dashed #C9B46A; padding-top: 20px; } }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Rows of Rows &mdash; Nested Loops</h1>
+  <div class="sub">AP CSP &middot; Unit 3, Lesson 4 &middot; Reference Sheet<br>Read page 1 before class</div>
+</header>
+
+<p class="intro">One loop draws a row. Put that whole loop <b>inside</b> another loop and you get a grid: for each row, for each column, draw one thing. Keep this beside you while you build; leave page 2 face-down until after.</p>
+
+<div class="cols">
+  <div>
+    <h2>A loop inside a loop <span class="tag">NESTED</span></h2>
+<pre><span class="k">for</span> (<span class="k">let</span> r = 0; r &lt; 8; r++) {      <span class="c">// each row</span>
+  <span class="k">for</span> (<span class="k">let</span> c = 0; c &lt; 16; c++) {   <span class="c">// each column</span>
+    circle(100 + c * 40, 100 + r * 40, 20);
+  }
+}</pre>
+    <table>
+      <tr><th>Loop</th><th>Variable</th><th>Controls</th></tr>
+      <tr><td>outer</td><td class="mono">r</td><td>which row &rarr; <b>y</b></td></tr>
+      <tr><td>inner</td><td class="mono">c</td><td>across the row &rarr; <b>x</b></td></tr>
+    </table>
+    <div class="box"><b class="lbl">INNER FINISHES FIRST</b>For <b>each</b> trip of the outer loop, the inner loop runs <b>all the way</b> &mdash; then r goes up and c starts again at 0.</div>
+  </div>
+  <div>
+    <h2>Trace it <span class="tag">2 ROWS &times; 3 COLUMNS</span></h2>
+    <table>
+      <tr><th>r</th><th>c</th><th>x, y</th></tr>
+      <tr><td class="mono">0</td><td class="mono">0</td><td class="mono">100, 100</td></tr>
+      <tr><td class="mono">0</td><td class="mono">1</td><td class="mono">140, 100</td></tr>
+      <tr><td class="mono">0</td><td class="mono">2</td><td class="mono">180, 100</td></tr>
+      <tr class="end"><td class="mono">1</td><td class="mono">0</td><td class="mono">100, 140 &larr; c resets</td></tr>
+      <tr><td class="mono">1</td><td class="mono">1</td><td class="mono">140, 140</td></tr>
+      <tr><td class="mono">1</td><td class="mono">2</td><td class="mono">180, 140</td></tr>
+    </table>
+  </div>
+</div>
+
+<div class="cols">
+  <div>
+    <h2>How many times? <span class="tag">THE EXAM QUESTION</span></h2>
+    <table>
+      <tr><th>Loops</th><th>Inner body runs</th></tr>
+      <tr><td class="mono">r &lt; 8, c &lt; 16</td><td>8 &times; 16 = <b>128</b></td></tr>
+      <tr><td class="mono">r &lt; 3, c &lt; 5</td><td>3 &times; 5 = <b>15</b></td></tr>
+      <tr><td class="mono">r &lt; 4, c &lt; r</td><td>0 + 1 + 2 + 3 = <b>6</b> (cannot multiply)</td></tr>
+    </table>
+  </div>
+  <div>
+    <h2>Two loops, two names</h2>
+    <div class="box warn"><b class="lbl">DO NOT REUSE i</b>An inner <code>let i</code> hides the outer one, so you can only use one of them. Use <b>r</b> and <b>c</b> (or i and j). Then <code>100 + c * 40, 100 + r * 40</code> says what it means.</div>
+  </div>
+</div>
+
+<h2>What this looks like on the AP exam <span class="tag">REFERENCE SHEET</span></h2>
+<div class="cols">
+<pre><span class="p">REPEAT</span> 8 <span class="p">TIMES</span>
+{
+  <span class="p">REPEAT</span> 16 <span class="p">TIMES</span>
+  {
+    bulbs &larr; bulbs + 1
+  }
+}</pre>
+  <div class="box exam"><b class="lbl">ON THE EXAM &middot; AAP-2.K</b>A favorite question is "what is the value after this runs?" Count how many times the <b>innermost</b> line runs: outer trips &times; inner trips. Here bulbs goes up by 128.</div>
+</div>
+
+<h2>Check yourself before class</h2>
+<div class="cols">
+  <ol class="q">
+    <li>Outer <code>r &lt; 3</code>, inner <code>c &lt; 5</code>: how many circles?</li>
+    <li>Outer <code>r &lt; 4</code>, inner <code>c &lt; r</code>: how many?</li>
+    <li>x should come from which variable?</li>
+  </ol>
+  <ol class="q" start="4">
+    <li>When r goes from 0 to 1, what is c?</li>
+    <li><code>REPEAT 2 TIMES { REPEAT 3 TIMES { x &larr; x + 1 } }</code>, x starts at 0. x?</li>
+    <li>Swap the two loops. Does the grid change?</li>
+  </ol>
+</div>
+<div class="ans"><b>Answers.</b> 1) 15. &nbsp;2) 6. &nbsp;3) c, the column. &nbsp;4) 0 &mdash; it resets. &nbsp;5) 6. &nbsp;6) No: same shapes, drawn in a different order.</div>
+
+<div class="page2">
+<div class="p2note">PAGE 2 &mdash; after the build. The patterns behind TODOs 1&ndash;5 and the star lab.</div>
+<div class="cols">
+  <div>
+    <h2>Build it one row first <span class="tag">TODO 1 &rarr; 2</span></h2>
+<pre><span class="c">// 1. one row that works</span>
+<span class="k">for</span> (<span class="k">let</span> c = 0; c &lt; COLS; c++) {
+  circle(LEFT + c * SP, TOP, 20);
+}
+<span class="c">// 2. wrap it; only y changes</span>
+<span class="k">for</span> (<span class="k">let</span> r = 0; r &lt; ROWS; r++) {
+  <span class="k">for</span> (<span class="k">let</span> c = 0; c &lt; COLS; c++) {
+    circle(LEFT + c * SP, TOP + r * SP, 20);
+  }
+}</pre>
+  </div>
+  <div>
+    <h2>Where the color goes <span class="tag">TODO 3</span></h2>
+<pre><span class="k">for</span> (<span class="k">let</span> r = 0; r &lt; ROWS; r++) {
+  fill(255, 60 + r * 25, 60);  <span class="c">// once per row</span>
+  <span class="k">for</span> (<span class="k">let</span> c = 0; c &lt; COLS; c++) {
+    circle(&hellip;);
+  }
+}</pre>
+    <p style="margin:4px 0 0;">A row color only needs r, so it can sit in the <b>outer</b> loop. A color that uses c has to go in the <b>inner</b> loop.</p>
+    <div class="box warn"><b class="lbl">COUNTERS</b>Reset <code>bulbs = 0</code> at the top of the function, <b>outside both loops</b>. Inside the outer loop, it would only count the last row.</div>
+  </div>
+</div>
+
+<div class="cols">
+  <div>
+    <h2>The inner loop can use r <span class="tag">TRIANGLES</span></h2>
+<pre><span class="k">for</span> (<span class="k">let</span> r = 0; r &lt; 8; r++) {
+  <span class="k">for</span> (<span class="k">let</span> c = 0; c &lt;= r; c++) {
+    circle(400 - r * 20 + c * 40, 100 + r * 40, 20);
+  }
+}</pre>
+    <p style="margin:4px 0 0;">Row r has r + 1 bulbs: a Christmas tree. Total: 1 + 2 + &hellip; + 8 = 36.</p>
+  </div>
+  <div>
+    <h2>Drifting snow <span class="tag">TODO 5</span></h2>
+    <p style="margin:0;"><code>frameCount % 100</code> counts 0, 1, &hellip; 99, then wraps to 0. Adding it to every y moves the whole grid down 100 pixels, then jumps it back &mdash; which looks like steady falling.</p>
+  </div>
+</div>
+
+<h2>Three mistakes worth knowing about in advance</h2>
+<table>
+  <tr><th style="width:42%;">Written like this</th><th>What actually happens</th></tr>
+  <tr><td class="mono">circle(LEFT + r * SP, TOP + r * SP, 20);</td><td>r in both: a diagonal line, each bulb drawn 16 times.</td></tr>
+  <tr><td class="mono">for (let i&hellip;) { for (let i&hellip;) {</td><td>The inner i hides the outer one. You lose the row number.</td></tr>
+  <tr><td class="mono">the inner loop <i>after</i> the outer one, not inside</td><td>One column then one row &mdash; an L shape, not a grid.</td></tr>
+</table>
+<footer>AP CSP 2026&ndash;27 &middot; Unit 3 Lesson 4 &middot; 3.8 Iteration (AAP-2.K) &middot; Skills 2.B Implement and apply an algorithm &middot; 4.B Determine the result of code segments</footer>
+</div>
+
+</body>
+</html>
