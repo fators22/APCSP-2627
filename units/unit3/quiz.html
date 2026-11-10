@@ -1,0 +1,1721 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AP CSP p5.js Review Showdown</title>
+<style>
+  :root {
+    --stage-1: #3b0f8c;
+    --stage-2: #6a1fd1;
+    --panel: #ffffff;
+    --panel-soft: #f3efff;
+    --ink: #1c1433;
+    --ink-soft: #5b5378;
+    --code-bg: #1d1730;
+    --code-ink: #f4f1ff;
+    --code-accent: #ffd447;
+    --t-red: #e21b3c;
+    --t-blue: #1368ce;
+    --t-yellow: #c98f00;
+    --t-green: #26890c;
+    --ok: #1f9d55;
+    --bad: #d7263d;
+    --gold: #ffd447;
+    --radius-lg: 22px;
+    --radius-sm: 10px;
+    color-scheme: light;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --stage-1: #150634;
+      --stage-2: #2c0b66;
+      --panel: #221a3b;
+      --panel-soft: #2d2450;
+      --ink: #f2eeff;
+      --ink-soft: #b9b0d9;
+      --code-bg: #120d22;
+      color-scheme: dark;
+    }
+  }
+
+  * { box-sizing: border-box; }
+  html { font-size: clamp(17px, 0.9vw + 11px, 24px); }
+  body {
+    margin: 0;
+    min-height: 100vh;
+    font-family: ui-rounded, "SF Pro Rounded", "Nunito", "Segoe UI", system-ui, -apple-system, sans-serif;
+    color: var(--ink);
+    background:
+      radial-gradient(circle at 12% 18%, rgba(255,255,255,0.08) 0 120px, transparent 121px),
+      radial-gradient(circle at 88% 82%, rgba(255,255,255,0.06) 0 180px, transparent 181px),
+      linear-gradient(160deg, var(--stage-1), var(--stage-2));
+    background-attachment: fixed;
+  }
+  code, pre, .mono { font-family: ui-monospace, "SF Mono", Menlo, Consolas, "Courier New", monospace; }
+  button { font-family: inherit; cursor: pointer; }
+  button:focus-visible, .sec-card:focus-visible { outline: 4px solid var(--gold); outline-offset: 3px; }
+  .screen { display: none; max-width: 1200px; margin: 0 auto; padding: 1.2rem 1.2rem 3rem; }
+  .screen.active { display: block; }
+
+  /* ---------- HOME ---------- */
+  .brand { text-align: center; color: #fff; padding: 1.2rem 0 1.4rem; }
+  .brand h1 {
+    font-size: clamp(2.2rem, 5vw, 3.6rem);
+    margin: 0;
+    font-weight: 900;
+    letter-spacing: -0.02em;
+    text-shadow: 0 5px 0 rgba(0,0,0,0.25);
+  }
+  .brand p { margin: 0.4rem 0 0; font-size: 1.1rem; opacity: 0.9; }
+  .home-panel {
+    background: var(--panel);
+    border-radius: var(--radius-lg);
+    padding: 1.4rem;
+    box-shadow: 0 10px 0 rgba(0,0,0,0.25);
+  }
+  .home-panel h2 { margin: 0 0 0.8rem; font-size: 1.3rem; }
+  .sec-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 0.9rem; }
+  .sec-card {
+    display: flex; align-items: center; gap: 0.9rem;
+    border: 4px solid transparent;
+    background: var(--panel-soft);
+    color: var(--ink);
+    border-radius: 16px;
+    padding: 0.9rem 1rem;
+    text-align: left;
+    font-size: 1rem;
+    transition: transform 0.12s;
+  }
+  .sec-card:active { transform: scale(0.98); }
+  .sec-card .badge {
+    flex: none; width: 3.4rem; height: 3.4rem; border-radius: 14px;
+    display: grid; place-items: center; color: #fff; font-weight: 900; font-size: 1rem;
+  }
+  .sec-card .meta strong { display: block; font-size: 1.05rem; }
+  .sec-card .meta span { color: var(--ink-soft); font-size: 0.9rem; }
+  .sec-card .check {
+    margin-left: auto; width: 1.7rem; height: 1.7rem; border-radius: 50%;
+    border: 3px solid var(--ink-soft); display: grid; place-items: center; font-weight: 900; color: #fff;
+  }
+  .sec-card.on { border-color: var(--sec-color); }
+  .sec-card.on .check { background: var(--sec-color); border-color: var(--sec-color); }
+  .controls { display: flex; flex-wrap: wrap; gap: 1.2rem; align-items: center; margin-top: 1.3rem; }
+  .control-group { display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; }
+  .control-group > span { font-weight: 800; }
+  .seg { display: inline-flex; background: var(--panel-soft); border-radius: 999px; padding: 4px; }
+  .seg button {
+    border: 0; background: transparent; color: var(--ink); padding: 0.45rem 0.95rem;
+    border-radius: 999px; font-size: 0.95rem; font-weight: 800;
+  }
+  .seg button.on { background: var(--stage-2); color: #fff; }
+  .link-btn { border: 0; background: none; color: var(--stage-2); font-weight: 800; font-size: 0.95rem; text-decoration: underline; }
+  @media (prefers-color-scheme: dark) { .link-btn { color: var(--gold); } }
+  .start-row { display: flex; align-items: center; justify-content: space-between; gap: 1rem; margin-top: 1.4rem; flex-wrap: wrap; }
+  .count-note { color: var(--ink-soft); font-size: 1rem; }
+  .big-btn {
+    border: 0; border-radius: 14px; padding: 0.9rem 2.2rem;
+    font-size: 1.3rem; font-weight: 900; color: #fff; background: var(--ink);
+    box-shadow: 0 6px 0 rgba(0,0,0,0.35);
+    transition: transform 0.08s, box-shadow 0.08s;
+  }
+  @media (prefers-color-scheme: dark) { .big-btn { background: var(--gold); color: #1c1433; } }
+  .big-btn:active { transform: translateY(4px); box-shadow: 0 2px 0 rgba(0,0,0,0.35); }
+  .big-btn:disabled { opacity: 0.45; cursor: not-allowed; }
+  .big-btn.alt { background: var(--stage-2); color: #fff; }
+
+  /* ---------- GAME ---------- */
+  .hud { display: flex; align-items: center; gap: 0.8rem; color: #fff; flex-wrap: wrap; }
+  .chip {
+    background: rgba(255,255,255,0.16); border-radius: 999px; padding: 0.4rem 0.95rem;
+    font-weight: 800; font-size: 0.95rem; white-space: nowrap;
+  }
+  .chip.sec { background: var(--sec-color, #fff); }
+  .hud .spacer { flex: 1; }
+  .score-box {
+    background: #fff; color: #1c1433; border-radius: 12px; padding: 0.35rem 1rem;
+    font-weight: 900; font-size: 1.25rem; min-width: 6.5rem; text-align: center;
+  }
+  .score-box small { display: block; font-size: 0.65rem; font-weight: 800; color: #6b6488; margin-bottom: -2px; }
+  .quit { border: 0; background: rgba(0,0,0,0.25); color: #fff; border-radius: 10px; padding: 0.45rem 0.9rem; font-weight: 800; font-size: 0.9rem; }
+  .bar { height: 14px; background: rgba(255,255,255,0.18); border-radius: 999px; overflow: hidden; margin: 0.8rem 0 0.4rem; }
+  .bar > div { height: 100%; background: var(--gold); width: 0; transition: width 0.35s ease; }
+  .timer-bar { height: 10px; background: rgba(0,0,0,0.25); border-radius: 999px; overflow: hidden; margin-bottom: 0.8rem; }
+  .timer-bar > div { height: 100%; background: #fff; width: 100%; }
+  .timer-bar.low > div { background: #ff6b6b; }
+  .q-card {
+    background: var(--panel); border-radius: var(--radius-lg); padding: 1.3rem 1.5rem;
+    box-shadow: 0 8px 0 rgba(0,0,0,0.25); margin-bottom: 1rem;
+  }
+  .q-text { font-size: 1.45rem; font-weight: 800; line-height: 1.35; margin: 0; }
+  .q-text code, .exp code, .review code {
+    background: var(--panel-soft); padding: 0.05em 0.35em; border-radius: 6px; font-size: 0.92em;
+  }
+  pre.code {
+    background: var(--code-bg); color: var(--code-ink);
+    border-radius: 14px; padding: 1rem 1.2rem; margin: 1rem 0 0;
+    font-size: 1.15rem; line-height: 1.5; overflow-x: auto; white-space: pre;
+    border-left: 8px solid var(--sec-color, var(--gold));
+  }
+  pre.code .cm { color: #9d93c4; font-style: italic; }
+  .answers { display: grid; grid-template-columns: 1fr 1fr; gap: 0.8rem; }
+  @media (max-width: 760px) { .answers { grid-template-columns: 1fr; } }
+  .ans {
+    position: relative; display: flex; align-items: center; gap: 0.9rem;
+    border: 0; border-radius: 16px; padding: 1rem 1.1rem; min-height: 5rem;
+    color: #fff; font-size: 1.2rem; font-weight: 800; text-align: left; line-height: 1.3;
+    box-shadow: 0 6px 0 rgba(0,0,0,0.3);
+    transition: transform 0.08s, opacity 0.25s, filter 0.25s;
+  }
+  .ans:not(:disabled):hover { filter: brightness(1.08); }
+  .ans:not(:disabled):active { transform: translateY(4px); box-shadow: 0 2px 0 rgba(0,0,0,0.3); }
+  .ans .shape { flex: none; font-size: 1.7rem; width: 2rem; text-align: center; text-shadow: 0 2px 0 rgba(0,0,0,0.25); }
+  .ans .label { flex: 1; min-width: 0; }
+  .ans .label pre { margin: 0; font-size: 1rem; white-space: pre-wrap; font-weight: 700; line-height: 1.4; }
+  .ans .key { position: absolute; top: 6px; right: 10px; font-size: 0.7rem; opacity: 0.75; }
+  .ans.c0 { background: var(--t-red); }
+  .ans.c1 { background: var(--t-blue); }
+  .ans.c2 { background: var(--t-yellow); }
+  .ans.c3 { background: var(--t-green); }
+  .ans:disabled { cursor: default; }
+  .ans.dim { opacity: 0.3; filter: grayscale(0.6); }
+  .ans .mark {
+    flex: none; width: 2.2rem; height: 2.2rem; border-radius: 50%; background: #fff;
+    display: none; place-items: center; font-size: 1.3rem; font-weight: 900;
+  }
+  .ans.right .mark { display: grid; color: var(--ok); }
+  .ans.wrong .mark { display: grid; color: var(--bad); }
+  .ans.right { outline: 5px solid #fff; outline-offset: -5px; }
+
+  .feedback {
+    display: none; margin-top: 1rem; background: var(--panel); border-radius: var(--radius-lg);
+    overflow: hidden; box-shadow: 0 8px 0 rgba(0,0,0,0.25);
+  }
+  .feedback.show { display: block; animation: pop 0.25s ease-out; }
+  @keyframes pop { from { transform: scale(0.97); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+  .fb-head { display: flex; align-items: center; gap: 0.8rem; padding: 0.9rem 1.4rem; color: #fff; font-weight: 900; font-size: 1.5rem; }
+  .fb-head.ok { background: var(--ok); }
+  .fb-head.bad { background: var(--bad); }
+  .fb-head .pts { margin-left: auto; font-size: 1.15rem; background: rgba(0,0,0,0.2); padding: 0.25rem 0.8rem; border-radius: 999px; }
+  .fb-body { padding: 1rem 1.4rem 1.3rem; }
+  .exp { font-size: 1.15rem; line-height: 1.5; margin: 0 0 1rem; }
+  .correct-line { font-weight: 800; margin: 0 0 0.6rem; font-size: 1.1rem; }
+  .fb-actions { display: flex; justify-content: flex-end; align-items: center; gap: 1rem; }
+  .hint { color: var(--ink-soft); font-size: 0.85rem; }
+
+  /* ---------- SUMMARY ---------- */
+  .podium { text-align: center; color: #fff; padding: 1rem 0 1.4rem; }
+  .podium .trophy { font-size: 4rem; line-height: 1; }
+  .podium h1 { font-size: clamp(2rem, 4.5vw, 3.2rem); margin: 0.3rem 0 0; font-weight: 900; }
+  .podium .final { font-size: clamp(2.8rem, 7vw, 4.8rem); font-weight: 900; color: var(--gold); text-shadow: 0 5px 0 rgba(0,0,0,0.3); line-height: 1.1; }
+  .podium p { margin: 0.2rem 0; font-size: 1.15rem; opacity: 0.95; }
+  .sum-grid { display: grid; grid-template-columns: 1.1fr 1fr; gap: 1rem; }
+  @media (max-width: 860px) { .sum-grid { grid-template-columns: 1fr; } }
+  .panel { background: var(--panel); border-radius: var(--radius-lg); padding: 1.3rem 1.4rem; box-shadow: 0 8px 0 rgba(0,0,0,0.25); }
+  .panel h2 { margin: 0 0 0.9rem; font-size: 1.3rem; }
+  .stat-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.7rem; }
+  .stat { background: var(--panel-soft); border-radius: 14px; padding: 0.8rem; text-align: center; }
+  .stat b { display: block; font-size: 1.9rem; }
+  .stat span { color: var(--ink-soft); font-size: 0.9rem; }
+  .sec-row { margin-bottom: 0.85rem; }
+  .sec-row .top { display: flex; justify-content: space-between; font-weight: 800; font-size: 1rem; margin-bottom: 0.25rem; }
+  .sec-row .track { height: 16px; background: var(--panel-soft); border-radius: 999px; overflow: hidden; }
+  .sec-row .fill { height: 100%; border-radius: 999px; }
+  .review details { border-radius: 14px; background: var(--panel-soft); margin-bottom: 0.7rem; padding: 0.7rem 1rem; }
+  .review summary { cursor: pointer; font-weight: 800; font-size: 1.05rem; line-height: 1.35; }
+  .review .r-body { padding-top: 0.6rem; font-size: 1.05rem; line-height: 1.5; }
+  .review .r-body pre.code { font-size: 1rem; }
+  .review .yours { color: var(--bad); font-weight: 800; }
+  .review .theirs { color: var(--ok); font-weight: 800; }
+  .sum-actions { display: flex; gap: 1rem; flex-wrap: wrap; justify-content: center; margin-top: 1.4rem; }
+  .empty { color: var(--ink-soft); font-size: 1.05rem; }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation: none !important; transition: none !important; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ================= HOME ================= -->
+<section id="home" class="screen active" aria-label="Choose sections">
+  <div class="brand">
+    <h1>p5.js Review Showdown</h1>
+    <p>AP CSP &middot; 6 topics &middot; pick your sections and play</p>
+  </div>
+  <div class="home-panel">
+    <h2>Choose sections <button class="link-btn" id="toggleAll" type="button">Select none</button></h2>
+    <div class="sec-grid" id="secGrid"></div>
+    <div class="controls">
+      <div class="control-group">
+        <span>Timer</span>
+        <div class="seg" id="timerSeg">
+          <button type="button" data-t="0" class="on">Off</button>
+          <button type="button" data-t="30">30 s</button>
+          <button type="button" data-t="60">60 s</button>
+        </div>
+      </div>
+      <div class="control-group">
+        <span>Order</span>
+        <div class="seg" id="orderSeg">
+          <button type="button" data-o="shuffle" class="on">Shuffled</button>
+          <button type="button" data-o="section">By section</button>
+        </div>
+      </div>
+    </div>
+    <div class="start-row">
+      <div class="count-note" id="countNote"></div>
+      <button class="big-btn" id="startBtn" type="button">Start</button>
+    </div>
+  </div>
+</section>
+
+<!-- ================= GAME ================= -->
+<section id="game" class="screen" aria-label="Quiz">
+  <div class="hud">
+    <span class="chip sec" id="secChip"></span>
+    <span class="chip" id="qCount"></span>
+    <span class="chip" id="streakChip">🔥 0</span>
+    <span class="spacer"></span>
+    <div class="score-box"><small>SCORE</small><span id="scoreVal">0</span></div>
+    <button class="quit" id="quitBtn" type="button">Quit</button>
+  </div>
+  <div class="bar" aria-hidden="true"><div id="progressFill"></div></div>
+  <div class="timer-bar" id="timerBar" hidden><div id="timerFill"></div></div>
+
+  <div class="q-card">
+    <p class="q-text" id="qText"></p>
+    <div id="qCode"></div>
+  </div>
+  <div class="answers" id="answers"></div>
+
+  <div class="feedback" id="feedback" aria-live="polite">
+    <div class="fb-head" id="fbHead"></div>
+    <div class="fb-body">
+      <p class="correct-line" id="correctLine"></p>
+      <p class="exp" id="expText"></p>
+      <div class="fb-actions">
+        <span class="hint">Press Enter</span>
+        <button class="big-btn alt" id="nextBtn" type="button">Next</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= SUMMARY ================= -->
+<section id="summary" class="screen" aria-label="Results">
+  <div class="podium">
+    <div class="trophy" id="trophy">🏆</div>
+    <h1 id="rankMsg"></h1>
+    <div class="final" id="finalScore">0</div>
+    <p id="finalLine"></p>
+  </div>
+  <div class="sum-grid">
+    <div class="panel">
+      <h2>How you did</h2>
+      <div class="stat-row">
+        <div class="stat"><b id="stCorrect">0</b><span>correct</span></div>
+        <div class="stat"><b id="stAcc">0%</b><span>accuracy</span></div>
+        <div class="stat"><b id="stStreak">0</b><span>best streak</span></div>
+      </div>
+      <h2 style="margin-top:1.3rem">By topic</h2>
+      <div id="secBreakdown"></div>
+    </div>
+    <div class="panel review">
+      <h2>Review missed questions</h2>
+      <div id="missedList"></div>
+    </div>
+  </div>
+  <div class="sum-actions">
+    <button class="big-btn alt" id="retryBtn" type="button">Retry missed questions</button>
+    <button class="big-btn" id="homeBtn" type="button">Back to sections</button>
+  </div>
+</section>
+
+<script>
+/* =========================================================
+   SECTIONS
+   ========================================================= */
+const SECTIONS = [
+  { id: 1, code: "1.4",  name: "Identifying & Correcting Errors", color: "#e21b3c" },
+  { id: 2, code: "3.12", name: "Calling Procedures",               color: "#1368ce" },
+  { id: 3, code: "3.9",  name: "Developing Algorithms",            color: "#c98f00" },
+  { id: 4, code: "3.15", name: "Random Values",                    color: "#26890c" },
+  { id: 5, code: "3.6",  name: "Conditionals",                     color: "#8a3ffc" },
+  { id: 6, code: "3.8",  name: "Iteration",                        color: "#0a8f8f" }
+];
+
+/* =========================================================
+   QUESTION BANK
+   s = section id, q = question, code = optional code,
+   opts = 4 choices, a = index of correct choice,
+   exp = explanation, codeOpts = choices shown as code,
+   fixed = keep choices in the written order
+   ========================================================= */
+const BANK = [
+/* ---------------- 1.4 IDENTIFYING & CORRECTING ERRORS ---------------- */
+{ s:1,
+  q:"The programmer expects a circle in the middle of a gray canvas, but the canvas is plain gray. What is the error?",
+  code:`function setup() {
+  createCanvas(400, 400);
+}
+
+function draw() {
+  circle(200, 200, 50);
+  background(220);
+}`,
+  opts:["background(220) runs after circle(), so it paints over the circle every frame — move it to the first line of draw()",
+        "The circle's diameter is too small to see",
+        "circle() can only be called inside setup()",
+        "createCanvas() must be called inside draw()"],
+  a:0,
+  exp:"p5.js draws in order, like layers of paint. `background()` covers everything already drawn. Calling it FIRST in `draw()` clears the old frame, and then the circle is drawn on top." },
+
+{ s:1,
+  q:"This sketch shows only a tiny black canvas and no rectangle. What is the best fix?",
+  code:`function setup() {
+}
+
+function draw() {
+  background(0);
+  rect(300, 300, 50, 50);
+}`,
+  opts:["Add createCanvas(400, 400); inside setup()",
+        "Change background(0) to background(255)",
+        "Move rect() into setup()",
+        "Change rect() to square()"],
+  a:0,
+  exp:"Without `createCanvas()`, p5.js makes a default 100 × 100 canvas. A rectangle at (300, 300) is far off the edge, so it is never visible." },
+
+{ s:1,
+  q:"Which line causes an error when this sketch runs?",
+  code:`function setup() {
+  createCanvas(400, 400);   // Line 2
+  background(220);          // Line 3
+  Circle(200, 200, 80);     // Line 4
+  fill(255, 0, 0);          // Line 5
+}`,
+  opts:["Line 2","Line 3","Line 4","Line 5"], a:2, fixed:true,
+  exp:"JavaScript is case-sensitive. The built-in function is `circle`, not `Circle`, so the console reports that `Circle` is not defined." },
+
+{ s:1,
+  q:"The programmer wants BOTH circles to be red, but only the right circle is red. Which change fixes the program?",
+  code:`function setup() {
+  createCanvas(400, 400);
+  background(220);
+  circle(100, 200, 80);
+  fill(255, 0, 0);
+  circle(300, 200, 80);
+}`,
+  opts:["Move fill(255, 0, 0) above the first circle() call",
+        "Change fill(255, 0, 0) to fill(0, 255, 0)",
+        "Call fill(255, 0, 0) again after the second circle",
+        "Change background(220) to background(255, 0, 0)"],
+  a:0,
+  exp:"`fill()` only affects shapes drawn AFTER it. The first circle is drawn with the default white fill because the red fill hasn't been set yet." },
+
+{ s:1,
+  q:"The programmer wants a circle near the BOTTOM-RIGHT corner of a 400 × 400 canvas, but this line draws it near the TOP-RIGHT. Which replacement fixes it?",
+  code:`circle(350, 50, 60);`,
+  opts:["circle(350, 350, 60);","circle(50, 350, 60);","circle(50, 50, 60);","circle(-350, 50, 60);"],
+  a:0, codeOpts:true,
+  exp:"In p5.js, (0, 0) is the TOP-LEFT corner and y increases going DOWN. A y-value of 350 is near the bottom; x = 350 is near the right." },
+
+{ s:1,
+  q:"When this sketch runs, the console shows: ReferenceError: size is not defined. What is the best fix?",
+  code:`function setup() {
+  createCanvas(400, 400);
+  let size = 50;
+}
+
+function draw() {
+  background(220);
+  circle(200, 200, size);
+}`,
+  opts:["Declare let size = 50; at the top of the sketch, outside both functions",
+        "Change let to const inside setup()",
+        "Move createCanvas() into draw()",
+        "Rename size to Size inside draw()"],
+  a:0,
+  exp:"A variable declared with `let` inside `setup()` is LOCAL — it only exists inside `setup()`. Declaring it at the top of the sketch makes it GLOBAL, so `draw()` can use it." },
+
+{ s:1,
+  q:"The circle is supposed to slide to the right, but it never moves. Why?",
+  code:`function setup() {
+  createCanvas(400, 400);
+}
+
+function draw() {
+  let x = 0;
+  background(220);
+  circle(x, 200, 30);
+  x = x + 2;
+}`,
+  opts:["x is declared inside draw(), so it is reset to 0 at the start of every frame",
+        "x = x + 2 must come before let x = 0",
+        "background(220) erases the movement",
+        "circle() cannot use a variable for its x-position"],
+  a:0,
+  exp:"`draw()` runs about 60 times per second, and every time it runs `let x = 0` starts over. Move `let x = 0;` above `draw()` so the value is kept between frames." },
+
+{ s:1,
+  q:"The programmer wants to display the current VALUE of score, but the canvas always shows the word score. What is the error?",
+  code:`let score = 0;
+
+function setup() {
+  createCanvas(400, 200);
+}
+
+function draw() {
+  background(255);
+  score = score + 1;
+  text("score", 50, 100);
+}`,
+  opts:["\"score\" is in quotation marks, so it is text, not the variable — use text(score, 50, 100)",
+        "score must be declared inside draw()",
+        "text() cannot display numbers",
+        "score = score + 1 should be written score + 1"],
+  a:0,
+  exp:"Anything in quotation marks is a string literal — the exact characters s-c-o-r-e. Without quotes, `score` refers to the variable and shows its value." },
+
+{ s:1,
+  q:"A sketch runs without crashing, but every square is drawn blue when it should be green. What type of error is this?",
+  opts:["Logic error","Syntax error","Run-time error","Overflow error"], a:0, fixed:true,
+  exp:"A LOGIC error means the program runs but produces the wrong result. A syntax error breaks the language rules, and a run-time error stops the program while it is running." },
+
+{ s:1,
+  q:"Which of these is a SYNTAX error?",
+  opts:["Typing functon setup() { instead of function setup() {",
+        "Drawing a circle at x = 500 on a 400-wide canvas",
+        "Using fill(255) when you meant fill(0)",
+        "A loop that draws 9 squares instead of 10"],
+  a:0,
+  exp:"A syntax error breaks the rules of the language — `functon` is not a JavaScript keyword, so the code can't be read. The other three run fine but give the wrong result (logic errors)." },
+
+{ s:1,
+  q:"The programmer expects 15 to be printed. What is actually printed, and how should it be fixed?",
+  code:`let a = 10;
+let b = 20;
+let average = a + b / 2;
+print(average);`,
+  opts:["20 — change to (a + b) / 2",
+        "15 — no fix needed",
+        "30 — change to a + b * 2",
+        "An error — division cannot be used with variables"],
+  a:0,
+  exp:"Order of operations: division happens before addition. `b / 2` is 10, then `10 + 10` is 20. Parentheses force the addition first: `(10 + 20) / 2` = 15." },
+
+{ s:1,
+  q:"x is 50, so the programmer expects a BLUE circle. Instead the circle is red. What is the error?",
+  code:`let x = 50;
+
+function setup() {
+  createCanvas(400, 400);
+  background(220);
+  if (x = 100) {
+    fill(255, 0, 0);
+  } else {
+    fill(0, 0, 255);
+  }
+  circle(200, 200, 80);
+}`,
+  opts:["x = 100 ASSIGNS 100 to x instead of comparing — use x === 100",
+        "The else block must come before the if block",
+        "fill() cannot be used inside an if statement",
+        "x must be declared inside setup()"],
+  a:0,
+  exp:"A single `=` is assignment. `x = 100` stores 100 in x, and 100 counts as true, so the red branch always runs. Use `===` to compare." },
+
+{ s:1,
+  q:"The comment describes the goal. Which mouseX value would REVEAL the error in this code?",
+  code:`function draw() {
+  background(220);
+  // GOAL: red when mouseX is greater than 200, otherwise blue
+  if (mouseX > 300) {
+    fill(255, 0, 0);
+  } else {
+    fill(0, 0, 255);
+  }
+  circle(200, 200, 100);
+}`,
+  opts:["mouseX = 250","mouseX = 100","mouseX = 350","mouseX = 0"], a:0,
+  exp:"At 250 the goal says RED (250 > 200), but the code shows BLUE (250 is not > 300). At 100, 0, and 350 the code and the goal agree, so those tests wouldn't catch the bug. Good test cases check values between and around boundaries." },
+
+/* ---------------- 3.12 CALLING PROCEDURES ---------------- */
+{ s:2,
+  q:"Why does this sketch NOT draw a sun?",
+  code:`function setup() {
+  createCanvas(400, 400);
+  background(220);
+}
+
+function drawSun() {
+  fill(255, 204, 0);
+  circle(80, 80, 100);
+}`,
+  opts:["drawSun() is defined but never called",
+        "The procedure must be named draw",
+        "fill() must come after circle()",
+        "background() erases the sun"],
+  a:0,
+  exp:"Defining a procedure only tells the computer HOW to do something. Nothing happens until it is CALLED by name, e.g. `drawSun();` inside `setup()`." },
+
+{ s:2,
+  q:"How many times is circle() executed when this sketch runs?",
+  code:`function setup() {
+  createCanvas(400, 400);
+  background(220);
+  drawTarget();
+  drawTarget();
+  drawTarget();
+}
+
+function drawTarget() {
+  circle(200, 200, 100);
+  circle(200, 200, 50);
+}`,
+  opts:["6","2","3","5"], a:0,
+  exp:"Each call to `drawTarget()` runs both lines in its body (2 circles). It is called 3 times, so 3 × 2 = 6." },
+
+{ s:2,
+  q:"What happens when this sketch runs?",
+  code:`function setup() {
+  createCanvas(400, 400);
+  drawhouse();
+}
+
+function drawHouse() {
+  square(150, 200, 100);
+  triangle(150, 200, 250, 200, 200, 130);
+}`,
+  opts:["An error occurs because drawhouse is not the same name as drawHouse",
+        "The house is drawn normally",
+        "Only the square is drawn",
+        "The house is drawn twice"],
+  a:0,
+  exp:"Procedure names are case-sensitive. `drawhouse` and `drawHouse` are different names, so the call fails with \"drawhouse is not defined\"." },
+
+{ s:2,
+  q:"Sketch A calls drawStar() once inside setup(). Sketch B calls drawStar() once inside draw(). Which statement is true?",
+  opts:["Sketch A runs drawStar() one time; Sketch B runs it over and over, about 60 times per second",
+        "Both sketches run drawStar() exactly once",
+        "Sketch A runs it 60 times per second; Sketch B runs it once",
+        "A procedure cannot be called inside draw()"],
+  a:0,
+  exp:"`setup()` runs once when the sketch starts. `draw()` repeats continuously (about 60 frames per second), so any procedure called inside it repeats too." },
+
+{ s:2,
+  q:"What is printed?",
+  code:`let count = 0;
+
+function setup() {
+  addTwo();
+  addTwo();
+  addOne();
+  print(count);
+}
+
+function addTwo() {
+  count = count + 2;
+}
+
+function addOne() {
+  count = count + 1;
+}`,
+  opts:["5","3","0","2"], a:0,
+  exp:"count starts at 0. `addTwo()` → 2, `addTwo()` → 4, `addOne()` → 5. Each call changes the global variable." },
+
+{ s:2,
+  q:"The head appears, but the eyes are missing. Which change fixes it?",
+  code:`function setup() {
+  createCanvas(400, 400);
+  background(220);
+  drawEyes();
+  drawHead();
+}
+
+function drawHead() {
+  fill(255, 220, 180);
+  circle(200, 200, 200);
+}
+
+function drawEyes() {
+  fill(0);
+  circle(170, 180, 20);
+  circle(230, 180, 20);
+}`,
+  opts:["Call drawHead() before drawEyes() inside setup()",
+        "Move fill(0) below the eye circles",
+        "Rename drawEyes to draw",
+        "Define drawEyes() above drawHead() in the file"],
+  a:0,
+  exp:"The ORDER OF THE CALLS decides what is on top. The eyes are drawn first, then the big head covers them. Where the procedures are DEFINED in the file doesn't matter — only when they are called." },
+
+{ s:2,
+  q:"What is printed?",
+  code:`let score = 5;
+
+function setup() {
+  score = score + getBonus();
+  score = score + getBonus();
+  print(score);
+}
+
+function getBonus() {
+  return 10;
+}`,
+  opts:["25","15","20","5"], a:0,
+  exp:"Each call to `getBonus()` RETURNS 10, which takes the place of the call. 5 + 10 = 15, then 15 + 10 = 25." },
+
+{ s:2,
+  q:"A program repeats the same 6 lines that draw a cloud in three different places in the code. What is the MAIN benefit of moving those lines into a procedure named drawCloud() and calling it?",
+  opts:["It removes repeated code, so the cloud can be read and changed in one place",
+        "It lets the program run without setup()",
+        "It lets the cloud be drawn without a canvas",
+        "It guarantees the program has no errors"],
+  a:0,
+  exp:"Procedures are a form of ABSTRACTION. Writing the steps once and calling them by name reduces duplication, makes code easier to read, and means a fix only needs to be made in one place." },
+
+{ s:2,
+  q:"What appears on the canvas?",
+  code:`function setup() {
+  createCanvas(400, 400);
+  background(220);
+  drawBall;
+}
+
+function drawBall() {
+  fill(255, 0, 0);
+  circle(200, 200, 60);
+}`,
+  opts:["Only a gray background — drawBall without () names the procedure but does not call it",
+        "A red ball in the center",
+        "A red ball in the top-left corner",
+        "Two red balls"],
+  a:0,
+  exp:"Parentheses are what CALL a procedure. `drawBall;` just mentions its name and does nothing. The correct call is `drawBall();`." },
+
+{ s:2,
+  q:"In what order are the letters printed to the console?",
+  code:`function setup() {
+  print("A");
+  greet();
+  print("C");
+}
+
+function greet() {
+  print("B");
+}`,
+  opts:["A, B, C","A, C, B","B, A, C","A, C"], a:0,
+  exp:"When `greet()` is called, the program jumps into the procedure, runs its body (prints B), then RETURNS to the next line after the call (prints C)." },
+
+{ s:2,
+  q:"How many times is leaves() executed when this sketch runs?",
+  code:`function setup() {
+  createCanvas(400, 400);
+  forest();
+}
+
+function forest() {
+  tree();
+  tree();
+  tree();
+}
+
+function tree() {
+  trunk();
+  leaves();
+}
+
+function trunk() {
+  rect(190, 250, 20, 80);
+}
+
+function leaves() {
+  circle(200, 230, 80);
+}`,
+  opts:["3","1","6","2"], a:0,
+  exp:"`forest()` calls `tree()` 3 times, and each `tree()` calls `leaves()` once. 3 × 1 = 3. Procedures can call other procedures." },
+
+{ s:2,
+  q:"Where is the center of the circle drawn?",
+  code:`let x = 100;
+
+function setup() {
+  createCanvas(400, 400);
+  background(220);
+  moveRight();
+  moveRight();
+  circle(x, 200, 30);
+}
+
+function moveRight() {
+  x = x + 50;
+}`,
+  opts:["(200, 200)","(150, 200)","(100, 200)","(250, 200)"], a:0,
+  exp:"x starts at 100. Each `moveRight()` adds 50: 150, then 200. The circle is drawn AFTER both calls, at (200, 200)." },
+
+/* ---------------- 3.9 DEVELOPING ALGORITHMS ---------------- */
+{ s:3,
+  q:"Which code segment draws a red circle with NO outline?",
+  opts:[`noStroke();
+fill(255, 0, 0);
+circle(200, 200, 80);`,
+`circle(200, 200, 80);
+noStroke();
+fill(255, 0, 0);`,
+`fill(255, 0, 0);
+circle(200, 200, 80);
+noStroke();`,
+`noFill();
+stroke(255, 0, 0);
+circle(200, 200, 80);`],
+  a:0, codeOpts:true,
+  exp:"Style settings must come BEFORE the shape they affect. The last option draws only a red outline with no fill." },
+
+{ s:3,
+  q:"Goal: a WHITE square drawn on top of a BLACK circle. Which code segment achieves the goal?",
+  opts:[`fill(0);
+circle(200, 200, 150);
+fill(255);
+square(150, 150, 100);`,
+`fill(255);
+square(150, 150, 100);
+fill(0);
+circle(200, 200, 150);`,
+`fill(0);
+fill(255);
+circle(200, 200, 150);
+square(150, 150, 100);`,
+`fill(255);
+circle(200, 200, 150);
+fill(0);
+square(150, 150, 100);`],
+  a:0, codeOpts:true,
+  exp:"Set black, draw the circle, then set white and draw the square last so it sits on top. Option 2 puts the circle on top; option 3 makes both white; option 4 swaps the colors." },
+
+{ s:3,
+  q:"Variables a and b hold 5 and 8. Which segment correctly SWAPS them so a is 8 and b is 5?",
+  opts:[`let temp = a;
+a = b;
+b = temp;`,
+`a = b;
+b = a;`,
+`let temp = a;
+b = a;
+a = temp;`,
+`b = a;
+a = b;`],
+  a:0, codeOpts:true,
+  exp:"A swap needs a temporary variable to hold one value. Option 2 copies 8 into a, then copies that 8 into b — the 5 is lost, so both become 8." },
+
+{ s:3,
+  q:"What is printed?",
+  code:`let x = 10;
+let y = x * 2;
+x = y - 5;
+y = x + y;
+print(x + ", " + y);`,
+  opts:["15, 35","10, 20","15, 20","5, 25"], a:0,
+  exp:"Trace line by line: x = 10 → y = 20 → x = 20 − 5 = 15 → y = 15 + 20 = 35." },
+
+{ s:3,
+  q:"Which statement about Algorithms A and B is true for ANY starting value of x?",
+  code:`// Algorithm A
+x = x + 10;
+x = x * 2;
+
+// Algorithm B
+x = x * 2;
+x = x + 20;`,
+  opts:["They always produce the same final value of x",
+        "Algorithm A always gives a larger result",
+        "Algorithm B always gives a larger result",
+        "They give the same result only when x starts at 0"],
+  a:0,
+  exp:"A gives (x + 10) × 2 = 2x + 20. B gives 2x + 20. Different steps can make equivalent algorithms. Try x = 5: A → 30, B → 30." },
+
+{ s:3,
+  q:"A circle moves right with x = x + 3. Which algorithm makes it reappear on the LEFT after it leaves the RIGHT side of the canvas?",
+  opts:[`x = x + 3;
+if (x > width) {
+  x = 0;
+}`,
+`x = x + 3;
+if (x < 0) {
+  x = width;
+}`,
+`x = 0;
+x = x + 3;`,
+`if (x > width) {
+  x = x + 3;
+}`],
+  a:0, codeOpts:true,
+  exp:"Move first, then check: once x passes `width` (the right edge), reset it to 0 (the left edge). Option 3 resets x every frame, so the circle never gets past 3." },
+
+{ s:3,
+  q:"Using the default rectMode (CORNER), which call draws a 100-wide, 50-tall rectangle exactly centered on a 400 × 400 canvas?",
+  opts:["rect(150, 175, 100, 50);","rect(200, 200, 100, 50);","rect(175, 150, 100, 50);","rect(100, 50, 200, 200);"],
+  a:0, codeOpts:true,
+  exp:"`rect(x, y, w, h)` starts at the TOP-LEFT corner. To center it: x = 200 − 100/2 = 150 and y = 200 − 50/2 = 175. `rect(200, 200, …)` would put the corner at the center." },
+
+{ s:3,
+  q:"Which algorithm always stores the LARGEST of a, b, and c in the variable biggest?",
+  opts:[`let biggest = a;
+if (b > biggest) {
+  biggest = b;
+}
+if (c > biggest) {
+  biggest = c;
+}`,
+`let biggest = a;
+if (b > a) {
+  biggest = b;
+}
+if (c > a) {
+  biggest = c;
+}`,
+`let biggest = 0;
+if (a > b) {
+  biggest = a;
+}
+if (b > c) {
+  biggest = b;
+}`,
+`let biggest = c;
+if (a > b) {
+  biggest = a;
+}`],
+  a:0, codeOpts:true,
+  exp:"Compare each value to the biggest SO FAR. Option 2 fails for a = 1, b = 9, c = 5: biggest becomes 9, then gets replaced by 5 because 5 > a." },
+
+{ s:3,
+  q:"Goal: a target with three visible rings (big red, medium white, small red center). In which order should the circles be drawn?",
+  opts:["300-wide, then 200-wide, then 100-wide",
+        "100-wide, then 200-wide, then 300-wide",
+        "200-wide, then 100-wide, then 300-wide",
+        "The order doesn't matter in p5.js"],
+  a:0,
+  exp:"Later shapes cover earlier ones. Draw the LARGEST first so each smaller circle sits on top. Drawing the biggest last hides everything under it." },
+
+{ s:3,
+  q:"Which line correctly converts Celsius c to Fahrenheit using F = C × 9/5 + 32? (When c is 20, the result should be 68.)",
+  opts:["let f = c * 9 / 5 + 32;","let f = c * (9 / 5 + 32);","let f = (c + 32) * 9 / 5;","let f = c * 9 / (5 + 32);"],
+  a:0, codeOpts:true,
+  exp:"20 × 9 = 180, ÷ 5 = 36, + 32 = 68. Multiplication and division happen left to right before the addition. The parentheses in the other options change the order and give 676, 93.6, and about 4.9." },
+
+{ s:3,
+  q:"What is the purpose of the line speed = speed * -1?",
+  code:`let x = 200;
+let speed = 4;
+
+function draw() {
+  background(220);
+  circle(x, 200, 40);
+  x = x + speed;
+  if (x > width || x < 0) {
+    speed = speed * -1;
+  }
+}`,
+  opts:["It reverses the circle's direction when it reaches an edge",
+        "It stops the circle",
+        "It moves the circle back to the center",
+        "It doubles the circle's speed"],
+  a:0,
+  exp:"Multiplying by −1 flips the sign: 4 becomes −4 (moving left), and −4 becomes 4 (moving right). That makes the circle bounce." },
+
+{ s:3,
+  q:"A game uses this algorithm. After the events listed in the comment, what are score and lives?",
+  code:`let score = 0;
+let lives = 3;
+
+// When the player scores: score = score + 10;
+// When the player is hit:  lives = lives - 1;
+
+// Events in order: score, hit, score, score, hit`,
+  opts:["score 30, lives 1","score 30, lives 3","score 20, lives 1","score 50, lives 1"], a:0,
+  exp:"Three \"score\" events add 10 each (30). Two \"hit\" events subtract 1 each from 3 (1)." },
+
+/* ---------------- 3.15 RANDOM VALUES ---------------- */
+{ s:4,
+  q:"What can random(10) return?",
+  opts:["Any decimal number from 0 up to, but not including, 10",
+        "Any whole number from 0 to 10, including 10",
+        "Any whole number from 1 to 10",
+        "Exactly 10"],
+  a:0,
+  exp:"With one argument, `random(n)` returns a decimal from 0 up to (not including) n — e.g. 3.71928. Use `floor()` to get whole numbers." },
+
+{ s:4,
+  q:"Which values can floor(random(1, 7)) produce?",
+  opts:["1, 2, 3, 4, 5, or 6","1 through 7","0 through 6","Any decimal between 1 and 7"], a:0,
+  exp:"`random(1, 7)` gives a decimal from 1 up to (not including) 7. `floor()` rounds down, so results are 1–6 — a perfect die roll." },
+
+{ s:4,
+  q:"A circle with diameter 50 is drawn at a random x on a 400-wide canvas. Which choice keeps the WHOLE circle visible every time?",
+  opts:["let x = random(25, 375);","let x = random(0, 400);","let x = random(50, 400);","let x = random(0, 375);"],
+  a:0, codeOpts:true,
+  exp:"x is the CENTER of the circle. The radius is 25, so the center must stay at least 25 pixels from each edge: from 25 to 375." },
+
+{ s:4,
+  q:"The programmer wants the circle to have ONE random color that stays the same, but the color flickers constantly. Why?",
+  code:`function setup() {
+  createCanvas(400, 400);
+}
+
+function draw() {
+  background(220);
+  fill(random(255), random(255), random(255));
+  circle(200, 200, 100);
+}`,
+  opts:["random() is called inside draw(), so a new color is picked every frame",
+        "random(255) can return values larger than 255",
+        "fill() only accepts whole numbers",
+        "background() changes the circle's color"],
+  a:0,
+  exp:"`draw()` repeats about 60 times per second, so `random()` is called again every frame and a new color is chosen each time." },
+
+{ s:4,
+  q:"Which change gives the circle ONE random color that stays the same for the whole run?",
+  opts:["Make global variables r, g, b; give them random values in setup(); use fill(r, g, b) in draw()",
+        "Move background(220) into setup()",
+        "Change random(255) to random(0)",
+        "Call fill() after circle()"],
+  a:0,
+  exp:"`setup()` runs only once, so picking the random values there and storing them in global variables keeps the same color every frame." },
+
+{ s:4,
+  q:"Over a long run, about what percent of the circles will be RED?",
+  code:`function draw() {
+  if (random(1) < 0.3) {
+    fill(255, 0, 0);
+  } else {
+    fill(0, 0, 255);
+  }
+  circle(random(width), random(height), 20);
+}`,
+  opts:["30%","70%","3%","50%"], a:0,
+  exp:"`random(1)` is a decimal from 0 to just under 1. It is less than 0.3 about 30% of the time." },
+
+{ s:4,
+  q:"Which values can floor(random(5)) produce?",
+  opts:["0, 1, 2, 3, 4","1, 2, 3, 4, 5","0, 1, 2, 3, 4, 5","1, 2, 3, 4"], a:0,
+  exp:"`random(5)` returns 0 up to (not including) 5. Rounding down gives 0, 1, 2, 3, or 4 — five possible values, starting at 0." },
+
+{ s:4,
+  q:"Which expression produces a random WHOLE number from 10 to 20, INCLUDING both 10 and 20?",
+  opts:["floor(random(10, 21))","floor(random(10, 20))","floor(random(20)) + 10","random(10, 20)"],
+  a:0, codeOpts:true,
+  exp:"The upper value is never reached, so use 21 to make 20 possible. `floor(random(10, 20))` stops at 19; `floor(random(20)) + 10` gives 10–29; `random(10, 20)` gives decimals." },
+
+{ s:4,
+  q:"What is the probability that the fill color is BLUE?",
+  code:`let r = floor(random(1, 11));
+
+if (r <= 3) {
+  fill(255, 0, 0);
+} else if (r <= 8) {
+  fill(0, 255, 0);
+} else {
+  fill(0, 0, 255);
+}`,
+  opts:["20%","30%","50%","10%"], a:0,
+  exp:"r is a whole number from 1 to 10 (10 equally likely values). 1–3 → red, 4–8 → green, 9–10 → blue. That's 2 out of 10 = 20%." },
+
+{ s:4,
+  q:"A student runs the same sketch twice without changing any code, and the shapes appear in different places each time. What is the most likely reason?",
+  opts:["The sketch uses random() to choose positions",
+        "The sketch has a syntax error",
+        "p5.js runs the lines in a different order each time",
+        "The canvas size changes each run"],
+  a:0,
+  exp:"`random()` produces different values each time the program runs, so the output can change even though the code doesn't." },
+
+{ s:4,
+  q:"What does the circle do?",
+  code:`let x = 200;
+
+function draw() {
+  background(220);
+  x = x + random(-5, 5);
+  circle(x, 200, 30);
+}`,
+  opts:["It jitters randomly left and right, drifting near where it started",
+        "It moves steadily to the right",
+        "It jumps to a random spot anywhere on the canvas each frame",
+        "It stays perfectly still"],
+  a:0,
+  exp:"Each frame x changes by a small random amount between −5 and 5, so the circle shakes left and right instead of jumping or moving steadily." },
+
+{ s:4,
+  q:"Which value can NEVER be printed?",
+  code:`print(floor(random(3)) + 1);`,
+  opts:["0","1","2","3"], a:0, fixed:true,
+  exp:"`floor(random(3))` gives 0, 1, or 2. Adding 1 gives 1, 2, or 3. Zero is impossible." },
+
+/* ---------------- 3.6 CONDITIONALS ---------------- */
+{ s:5,
+  q:"What color is the background when mouseX is EXACTLY 200?",
+  code:`function draw() {
+  if (mouseX > 200) {
+    background(255, 0, 0);
+  } else {
+    background(0, 0, 255);
+  }
+}`,
+  opts:["Blue","Red","Purple","It alternates red and blue"], a:0,
+  exp:"`200 > 200` is false, so the else branch runs. Always test the boundary value — `>` and `>=` behave differently there." },
+
+{ s:5,
+  q:"On a 400 × 400 canvas, where must the mouse be for this condition to be true?",
+  code:`if (mouseX < 200 && mouseY < 200) {
+  fill(0, 255, 0);
+}`,
+  opts:["Top-left quarter","Bottom-left quarter","Top-right quarter","Anywhere on the left half"], a:0,
+  exp:"`&&` requires BOTH parts to be true. Small x means left; small y means top (y grows downward)." },
+
+{ s:5,
+  q:"If mouseY is 250, which fill color is used?",
+  code:`if (mouseY < 100) {
+  fill(255, 0, 0);
+} else if (mouseY < 300) {
+  fill(0, 255, 0);
+} else {
+  fill(0, 0, 255);
+}`,
+  opts:["Green","Red","Blue","Red, then green"], a:0,
+  exp:"250 < 100 is false, so it checks the next condition: 250 < 300 is true → green. In an else-if chain, only the FIRST true branch runs." },
+
+{ s:5,
+  q:"What is the value of x after this code runs?",
+  code:`let x = 5;
+
+if (x > 3) {
+  x = x + 10;
+}
+if (x > 12) {
+  x = x * 2;
+}`,
+  opts:["30","15","5","20"], a:0,
+  exp:"These are two SEPARATE if statements, so both are checked. 5 > 3 → x = 15. Then 15 > 12 → x = 30. With `else if`, the second would be skipped." },
+
+{ s:5,
+  q:"Which condition is true ONLY while the lowercase a key is held down?",
+  opts:["keyIsPressed && key === 'a'","keyIsPressed || key === 'a'","key = 'a'","!keyIsPressed && key === 'a'"],
+  a:0, codeOpts:true,
+  exp:"`keyIsPressed` is true while any key is down, and `key` holds the most recent key. Both must be true, so use `&&`. With `||` it stays true after you let go of a." },
+
+{ s:5,
+  q:"What happens when this sketch runs?",
+  code:`let d = 20;
+
+function draw() {
+  background(220);
+  if (mouseIsPressed) {
+    d = d + 1;
+  }
+  circle(200, 200, d);
+}`,
+  opts:["The circle grows only while the mouse is held down, and keeps its size when released",
+        "The circle grows every frame no matter what",
+        "The circle grows while held, then shrinks back to 20 when released",
+        "The circle grows by exactly 1 per click, no matter how long you hold"],
+  a:0,
+  exp:"`mouseIsPressed` is checked every frame. While it's true, d increases by 1 per frame. Nothing resets d, so the size is kept." },
+
+{ s:5,
+  q:"On a 400-wide canvas, when is this condition true?",
+  code:`if (mouseX < 50 || mouseX > 350) {
+  background(255, 0, 0);
+}`,
+  opts:["When the mouse is near the left edge OR near the right edge",
+        "When the mouse is in the middle of the canvas",
+        "Never — mouseX can't be both",
+        "When the mouse is near the top or bottom edge"],
+  a:0,
+  exp:"`||` (OR) is true if EITHER part is true: x under 50 (left strip) or x over 350 (right strip)." },
+
+{ s:5,
+  q:"When does the code inside this if statement run?",
+  code:`if (!mouseIsPressed) {
+  fill(0, 0, 255);
+}`,
+  opts:["Whenever the mouse button is NOT pressed","Only while the mouse is pressed","Only once, on the first click","Never"], a:0,
+  exp:"`!` means NOT. It flips true to false, so the block runs when `mouseIsPressed` is false." },
+
+{ s:5,
+  q:"Which expression is equivalent to !(mouseX > 200)?",
+  opts:["mouseX <= 200","mouseX < 200","mouseX >= 200","mouseX > -200"], a:0, codeOpts:true,
+  exp:"The opposite of \"greater than 200\" is \"less than OR EQUAL to 200\". `mouseX < 200` would be false at exactly 200, but the original expression is true there." },
+
+{ s:5,
+  q:"A button is drawn with rect(100, 100, 200, 50). Which condition is true when the mouse is INSIDE it?",
+  opts:["mouseX > 100 && mouseX < 300 && mouseY > 100 && mouseY < 150",
+        "mouseX > 100 && mouseX < 200 && mouseY > 100 && mouseY < 50",
+        "mouseX > 100 || mouseX < 300 || mouseY > 100 || mouseY < 150",
+        "mouseX > 100 && mouseX < 300 && mouseY > 100 && mouseY < 300"],
+  a:0, codeOpts:true,
+  exp:"The rectangle spans x from 100 to 100 + 200 = 300 and y from 100 to 100 + 50 = 150. All four checks must be true, so use `&&`." },
+
+{ s:5,
+  q:"A circle is drawn with circle(200, 200, 100). Which condition is true when the mouse is inside the circle?",
+  opts:["dist(mouseX, mouseY, 200, 200) < 50","dist(mouseX, mouseY, 200, 200) < 100","dist(mouseX, mouseY, 200, 200) > 50","mouseX < 100"],
+  a:0, codeOpts:true,
+  exp:"`dist()` measures from the mouse to the center. The third number in `circle()` is the DIAMETER (100), so the radius is 50. Inside means the distance is less than 50." },
+
+{ s:5,
+  q:"The user presses r, then g, then r, then b. What is mode after the last key press?",
+  code:`let mode = 0;
+
+function keyPressed() {
+  if (key === 'r') {
+    mode = 1;
+  } else {
+    mode = 2;
+  }
+}`,
+  opts:["2","1","0","6"], a:0,
+  exp:"`keyPressed()` runs once per key press: r → 1, g → 2, r → 1, b → 2. Each press replaces the value; it doesn't add." },
+
+/* ---------------- 3.8 ITERATION ---------------- */
+{ s:6,
+  q:"How many circles are drawn, and what is the x-position of the LAST one?",
+  code:`function setup() {
+  createCanvas(400, 400);
+  for (let i = 0; i < 5; i++) {
+    circle(50 + i * 70, 200, 40);
+  }
+}`,
+  opts:["5 circles; last at x = 330","5 circles; last at x = 400","6 circles; last at x = 400","4 circles; last at x = 260"], a:0,
+  exp:"i takes the values 0, 1, 2, 3, 4 (five values). The last x is 50 + 4 × 70 = 330." },
+
+{ s:6,
+  q:"Which code segment prints 2 4 6 8 10 (one number per line)?",
+  opts:[`for (let i = 2; i <= 10; i += 2) {
+  print(i);
+}`,
+`for (let i = 0; i < 10; i += 2) {
+  print(i);
+}`,
+`let n = 1;
+while (n <= 5) {
+  n = n + 1;
+  print(n * 2);
+}`,
+`let n = 2;
+while (n < 10) {
+  print(n);
+  n = n + 2;
+}`],
+  a:0, codeOpts:true,
+  exp:"Trace each one. Option 2 prints 0 2 4 6 8. Option 3 adds before printing, so it prints 4 6 8 10 12. Option 4 stops before 10 because `10 < 10` is false." },
+
+{ s:6,
+  q:"What is printed?",
+  code:`let total = 0;
+
+for (let i = 1; i <= 6; i++) {
+  if (i % 2 === 0) {
+    total = total + i;
+  } else {
+    total = total - 1;
+  }
+}
+print(total);`,
+  opts:["9","12","21","6"], a:0,
+  exp:"Even i adds i; odd i subtracts 1. i=1: −1 | i=2: 1 | i=3: 0 | i=4: 4 | i=5: 3 | i=6: 9. Track the variable after EVERY pass." },
+
+{ s:6,
+  q:"A simulation models bacteria that double every hour. What is printed?",
+  code:`let population = 10;
+let hours = 0;
+
+while (population < 100) {
+  population = population * 2;
+  hours = hours + 1;
+}
+print(hours);`,
+  opts:["4","5","10","3"], a:0,
+  exp:"10 → 20 (1 hr) → 40 (2) → 80 (3) → 160 (4). After 4 passes, `160 < 100` is false, so the loop stops." },
+
+{ s:6,
+  q:"Which segments draw EXACTLY the same circles as Segment A?",
+  code:`// Segment A
+for (let i = 0; i < 4; i++) {
+  circle(100 + i * 50, 200, 20);
+}
+
+// Segment B
+let x = 100;
+while (x <= 250) {
+  circle(x, 200, 20);
+  x = x + 50;
+}
+
+// Segment C
+for (let i = 1; i <= 4; i++) {
+  circle(50 + i * 50, 200, 20);
+}`,
+  opts:["Segment B only","Segment C only","Both B and C","Neither B nor C"], a:2, fixed:true,
+  exp:"A draws at x = 100, 150, 200, 250. B also draws 100, 150, 200, 250 (it stops when x hits 300). C uses i = 1–4: 50 + 50 = 100 up to 50 + 200 = 250. Different code, same result." },
+
+{ s:6,
+  q:"What is printed after four iterations?",
+  code:`let sum = 0;
+let n = 3;
+
+for (let k = 0; k < 4; k++) {
+  sum = sum + n;
+  n = n + 2;
+}
+print(sum);`,
+  opts:["24","15","12","33"], a:0,
+  exp:"n takes the values 3, 5, 7, 9. sum = 3 + 5 + 7 + 9 = 24. Note that n changes AFTER it is added each time." },
+
+{ s:6,
+  q:"What is printed?",
+  code:`let count = 0;
+
+for (let i = 1; i <= 20; i++) {
+  if (i % 3 === 0) {
+    count = count + 1;
+  }
+}
+print(count);`,
+  opts:["6","7","20","3"], a:0,
+  exp:"The loop counts multiples of 3 from 1 to 20: 3, 6, 9, 12, 15, 18 — that's 6." },
+
+{ s:6,
+  q:"This sketch freezes and never shows anything. Why?",
+  code:`function setup() {
+  createCanvas(400, 400);
+  let x = 0;
+  while (x < 10) {
+    circle(x * 30 + 20, 200, 20);
+  }
+}`,
+  opts:["x never changes, so x < 10 is always true — an infinite loop; add x = x + 1 inside the loop",
+        "while loops cannot be used in setup()",
+        "circle() cannot be called inside a loop",
+        "x must start at 10"],
+  a:0,
+  exp:"A loop needs something inside it that eventually makes the condition false. Without updating x, the loop runs forever and the browser freezes." },
+
+{ s:6,
+  q:"The programmer wants EXACTLY 10 squares. How many does this draw, and what is the fix?",
+  code:`for (let i = 0; i <= 10; i++) {
+  square(i * 35, 180, 30);
+}`,
+  opts:["11 — change <= to <","10 — no fix needed","9 — change 0 to 1","11 — change i++ to i += 2"], a:0,
+  exp:"i goes 0, 1, 2, … 10 — that's 11 values. This is an \"off-by-one\" error. `i < 10` gives 0–9, exactly 10 squares." },
+
+{ s:6,
+  q:"How many squares does this nested loop draw?",
+  code:`for (let r = 0; r < 3; r++) {
+  for (let c = 0; c < 4; c++) {
+    square(c * 60 + 20, r * 60 + 20, 50);
+  }
+}`,
+  opts:["12","7","3","4"], a:0,
+  exp:"The inner loop runs 4 times for EACH of the 3 outer passes: 3 × 4 = 12 squares (3 rows of 4)." },
+
+{ s:6,
+  q:"Which segment prints: up down down down up down down down (one word per line)?",
+  opts:[`for (let i = 0; i < 8; i++) {
+  if (i % 4 === 0) {
+    print("up");
+  } else {
+    print("down");
+  }
+}`,
+`for (let i = 0; i < 8; i++) {
+  if (i % 3 === 0) {
+    print("up");
+  } else {
+    print("down");
+  }
+}`,
+`for (let i = 1; i <= 8; i++) {
+  if (i % 4 === 0) {
+    print("up");
+  } else {
+    print("down");
+  }
+}`,
+`for (let i = 0; i < 8; i++) {
+  if (i % 4 === 1) {
+    print("up");
+  } else {
+    print("down");
+  }
+}`],
+  a:0, codeOpts:true,
+  exp:"\"up\" must print on passes 0 and 4. i % 4 === 0 is true for i = 0 and 4. Option 3 prints \"up\" on passes 4 and 8 (the END of each group); option 2 repeats every 3." },
+
+{ s:6,
+  q:"How many circles are drawn?",
+  code:`let d = 20;
+
+while (d <= 100) {
+  circle(200, 200, d);
+  d = d + 20;
+}`,
+  opts:["5","4","6","100"], a:0,
+  exp:"d takes the values 20, 40, 60, 80, 100 — five circles. When d becomes 120, `120 <= 100` is false and the loop ends." },
+
+{ s:6,
+  q:"What is printed?",
+  code:`let x = 1;
+
+for (let i = 0; i < 5; i++) {
+  x = x * 2;
+}
+print(x);`,
+  opts:["32","10","16","64"], a:0,
+  exp:"x doubles five times: 2, 4, 8, 16, 32." },
+
+{ s:6,
+  q:"How many times is \"*\" printed?",
+  code:`for (let a = 0; a < 3; a++) {
+  for (let b = 0; b < a; b++) {
+    print("*");
+  }
+}`,
+  opts:["3","9","6","0"], a:0,
+  exp:"The inner loop's limit depends on a. a = 0 → 0 times, a = 1 → 1 time, a = 2 → 2 times. Total = 0 + 1 + 2 = 3." }
+];
+
+/* =========================================================
+   STATE
+   ========================================================= */
+const state = {
+  selected: new Set(SECTIONS.map(s => s.id)),
+  timer: 0,
+  order: "shuffle",
+  queue: [],
+  idx: 0,
+  score: 0,
+  streak: 0,
+  bestStreak: 0,
+  results: [],
+  locked: false,
+  shown: null,
+  tStart: 0,
+  tick: null
+};
+
+const $ = id => document.getElementById(id);
+const SHAPES = ["▲", "◆", "●", "■"];
+
+function esc(s) {
+  return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+}
+function inlineCode(s) {
+  return esc(s).replace(/`([^`]+)`/g, "<code>$1</code>");
+}
+function codeBlock(src) {
+  // escape, then dim comments
+  const lines = esc(src).split("\n").map(line => {
+    const i = line.indexOf("//");
+    return i === -1 ? line : line.slice(0, i) + '<span class="cm">' + line.slice(i) + "</span>";
+  });
+  return '<pre class="code">' + lines.join("\n") + "</pre>";
+}
+function shuffle(arr) {
+  const a = arr.slice();
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+function secOf(id) { return SECTIONS.find(s => s.id === id); }
+function show(id) {
+  document.querySelectorAll(".screen").forEach(el => el.classList.remove("active"));
+  $(id).classList.add("active");
+  window.scrollTo(0, 0);
+}
+
+/* =========================================================
+   HOME
+   ========================================================= */
+function buildHome() {
+  const grid = $("secGrid");
+  grid.innerHTML = "";
+  SECTIONS.forEach(sec => {
+    const n = BANK.filter(q => q.s === sec.id).length;
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "sec-card" + (state.selected.has(sec.id) ? " on" : "");
+    btn.style.setProperty("--sec-color", sec.color);
+    btn.setAttribute("aria-pressed", state.selected.has(sec.id));
+    btn.innerHTML =
+      '<span class="badge" style="background:' + sec.color + '">' + sec.code + "</span>" +
+      '<span class="meta"><strong>' + sec.name + "</strong><span>" + n + " questions</span></span>" +
+      '<span class="check">' + (state.selected.has(sec.id) ? "✓" : "") + "</span>";
+    btn.onclick = () => {
+      if (state.selected.has(sec.id)) state.selected.delete(sec.id);
+      else state.selected.add(sec.id);
+      buildHome();
+    };
+    grid.appendChild(btn);
+  });
+  const total = BANK.filter(q => state.selected.has(q.s)).length;
+  $("countNote").textContent = total
+    ? total + " questions in " + state.selected.size + " section" + (state.selected.size === 1 ? "" : "s")
+    : "Choose at least one section to start.";
+  $("startBtn").disabled = total === 0;
+  $("toggleAll").textContent = state.selected.size === SECTIONS.length ? "Select none" : "Select all";
+}
+
+$("toggleAll").onclick = () => {
+  if (state.selected.size === SECTIONS.length) state.selected.clear();
+  else SECTIONS.forEach(s => state.selected.add(s.id));
+  buildHome();
+};
+document.querySelectorAll("#timerSeg button").forEach(b => {
+  b.onclick = () => {
+    document.querySelectorAll("#timerSeg button").forEach(x => x.classList.remove("on"));
+    b.classList.add("on");
+    state.timer = Number(b.dataset.t);
+  };
+});
+document.querySelectorAll("#orderSeg button").forEach(b => {
+  b.onclick = () => {
+    document.querySelectorAll("#orderSeg button").forEach(x => x.classList.remove("on"));
+    b.classList.add("on");
+    state.order = b.dataset.o;
+  };
+});
+$("startBtn").onclick = () => {
+  const qs = BANK.filter(q => state.selected.has(q.s));
+  startGame(qs);
+};
+
+/* =========================================================
+   GAME
+   ========================================================= */
+function startGame(questions) {
+  state.queue = state.order === "shuffle" ? shuffle(questions) : questions.slice().sort((a, b) => a.s - b.s);
+  state.idx = 0;
+  state.score = 0;
+  state.streak = 0;
+  state.bestStreak = 0;
+  state.results = [];
+  $("scoreVal").textContent = "0";
+  show("game");
+  renderQuestion();
+}
+
+function renderQuestion() {
+  const q = state.queue[state.idx];
+  const sec = secOf(q.s);
+  state.locked = false;
+  document.documentElement.style.setProperty("--sec-color", sec.color);
+
+  $("secChip").textContent = sec.code + " " + sec.name;
+  $("secChip").style.background = sec.color;
+  $("qCount").textContent = (state.idx + 1) + " / " + state.queue.length;
+  $("streakChip").textContent = "🔥 " + state.streak;
+  $("progressFill").style.width = (state.idx / state.queue.length * 100) + "%";
+
+  $("qText").innerHTML = inlineCode(q.q);
+  $("qCode").innerHTML = q.code ? codeBlock(q.code) : "";
+
+  // choose display order
+  const order = q.fixed ? [0, 1, 2, 3] : shuffle([0, 1, 2, 3]);
+  state.shown = order;
+
+  const box = $("answers");
+  box.innerHTML = "";
+  order.forEach((orig, pos) => {
+    const b = document.createElement("button");
+    b.type = "button";
+    b.className = "ans c" + pos;
+    const label = q.codeOpts
+      ? '<pre class="mono">' + esc(q.opts[orig]) + "</pre>"
+      : inlineCode(q.opts[orig]);
+    b.innerHTML =
+      '<span class="shape" aria-hidden="true">' + SHAPES[pos] + "</span>" +
+      '<span class="label">' + label + "</span>" +
+      '<span class="mark"></span>' +
+      '<span class="key" aria-hidden="true">' + (pos + 1) + "</span>";
+    b.onclick = () => choose(pos);
+    box.appendChild(b);
+  });
+
+  $("feedback").classList.remove("show");
+
+  // timer
+  clearInterval(state.tick);
+  if (state.timer > 0) {
+    $("timerBar").hidden = false;
+    $("timerBar").classList.remove("low");
+    $("timerFill").style.width = "100%";
+    state.tStart = Date.now();
+    state.tick = setInterval(() => {
+      const left = state.timer - (Date.now() - state.tStart) / 1000;
+      const pct = Math.max(0, left / state.timer * 100);
+      $("timerFill").style.width = pct + "%";
+      $("timerBar").classList.toggle("low", left <= 5);
+      if (left <= 0) { clearInterval(state.tick); choose(-1); }
+    }, 100);
+  } else {
+    $("timerBar").hidden = true;
+  }
+}
+
+function choose(pos) {
+  if (state.locked) return;
+  state.locked = true;
+  clearInterval(state.tick);
+
+  const q = state.queue[state.idx];
+  const correctPos = state.shown.indexOf(q.a);
+  const isRight = pos === correctPos;
+
+  let pts = 0;
+  if (isRight) {
+    state.streak++;
+    state.bestStreak = Math.max(state.bestStreak, state.streak);
+    if (state.timer > 0) {
+      const left = Math.max(0, state.timer - (Date.now() - state.tStart) / 1000);
+      pts = Math.round(500 + 500 * (left / state.timer));
+    } else {
+      pts = 1000;
+    }
+    pts += Math.min(state.streak - 1, 5) * 100;
+    state.score += pts;
+  } else {
+    state.streak = 0;
+  }
+
+  state.results.push({ q, picked: pos === -1 ? -1 : state.shown[pos], right: isRight });
+
+  // mark tiles
+  [...$("answers").children].forEach((btn, i) => {
+    btn.disabled = true;
+    const mark = btn.querySelector(".mark");
+    if (i === correctPos) { btn.classList.add("right"); mark.textContent = "✓"; }
+    else if (i === pos) { btn.classList.add("wrong"); mark.textContent = "✗"; }
+    else btn.classList.add("dim");
+  });
+
+  $("scoreVal").textContent = state.score.toLocaleString();
+  $("streakChip").textContent = "🔥 " + state.streak;
+
+  const head = $("fbHead");
+  head.className = "fb-head " + (isRight ? "ok" : "bad");
+  head.innerHTML = isRight
+    ? '<span>✓ Correct!</span><span class="pts">+' + pts.toLocaleString() + "</span>"
+    : '<span>' + (pos === -1 ? "⏰ Time's up!" : "✗ Not quite") + '</span><span class="pts">+0</span>';
+  $("correctLine").innerHTML = isRight ? "" : "Correct answer: " +
+    (q.codeOpts ? "<code>" + esc(q.opts[q.a]).replace(/\n/g, " ") + "</code>" : inlineCode(q.opts[q.a]));
+  $("correctLine").style.display = isRight ? "none" : "block";
+  $("expText").innerHTML = inlineCode(q.exp);
+  $("nextBtn").textContent = state.idx === state.queue.length - 1 ? "See results" : "Next";
+  $("feedback").classList.add("show");
+  $("progressFill").style.width = ((state.idx + 1) / state.queue.length * 100) + "%";
+  setTimeout(() => {
+    $("feedback").scrollIntoView({ behavior: "smooth", block: "nearest" });
+    $("nextBtn").focus({ preventScroll: true });
+  }, 60);
+}
+
+function next() {
+  if (!state.locked) return;
+  if (state.idx < state.queue.length - 1) {
+    state.idx++;
+    renderQuestion();
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  } else {
+    showSummary();
+  }
+}
+$("nextBtn").onclick = next;
+$("quitBtn").onclick = () => {
+  clearInterval(state.tick);
+  if (state.results.length === 0 || confirm("Quit this round and see results so far?")) {
+    if (state.results.length) showSummary(); else { show("home"); buildHome(); }
+  }
+};
+
+document.addEventListener("keydown", e => {
+  if (!$("game").classList.contains("active")) return;
+  if (!state.locked && ["1", "2", "3", "4"].includes(e.key)) {
+    choose(Number(e.key) - 1);
+  } else if (state.locked && (e.key === "Enter" || e.key === " ")) {
+    e.preventDefault();
+    next();
+  }
+});
+
+/* =========================================================
+   SUMMARY
+   ========================================================= */
+function showSummary() {
+  clearInterval(state.tick);
+  const total = state.results.length;
+  const correct = state.results.filter(r => r.right).length;
+  const acc = total ? Math.round(correct / total * 100) : 0;
+
+  let msg = "Keep practicing!", trophy = "💪";
+  if (acc >= 90) { msg = "AP-ready legend!"; trophy = "🏆"; }
+  else if (acc >= 75) { msg = "Strong work!"; trophy = "🥈"; }
+  else if (acc >= 60) { msg = "Getting there!"; trophy = "🥉"; }
+
+  $("trophy").textContent = trophy;
+  $("rankMsg").textContent = msg;
+  $("finalScore").textContent = state.score.toLocaleString();
+  $("finalLine").textContent = correct + " of " + total + " correct";
+  $("stCorrect").textContent = correct + "/" + total;
+  $("stAcc").textContent = acc + "%";
+  $("stStreak").textContent = state.bestStreak;
+
+  // by section
+  const bd = $("secBreakdown");
+  bd.innerHTML = "";
+  SECTIONS.forEach(sec => {
+    const rs = state.results.filter(r => r.q.s === sec.id);
+    if (!rs.length) return;
+    const c = rs.filter(r => r.right).length;
+    const pct = Math.round(c / rs.length * 100);
+    bd.insertAdjacentHTML("beforeend",
+      '<div class="sec-row"><div class="top"><span>' + sec.code + " " + sec.name +
+      "</span><span>" + c + "/" + rs.length + " (" + pct + '%)</span></div>' +
+      '<div class="track"><div class="fill" style="width:' + pct + "%;background:" + sec.color + '"></div></div></div>');
+  });
+
+  // missed
+  const missed = state.results.filter(r => !r.right);
+  const ml = $("missedList");
+  ml.innerHTML = "";
+  if (!missed.length) {
+    ml.innerHTML = '<p class="empty">No missed questions. Perfect round!</p>';
+  } else {
+    missed.forEach((r, i) => {
+      const q = r.q;
+      const fmt = idx => idx === -1 ? "No answer (time ran out)"
+        : q.codeOpts ? "<code>" + esc(q.opts[idx]).replace(/\n/g, " ") + "</code>" : inlineCode(q.opts[idx]);
+      ml.insertAdjacentHTML("beforeend",
+        "<details><summary>" + secOf(q.s).code + " · " + inlineCode(q.q) + "</summary>" +
+        '<div class="r-body">' + (q.code ? codeBlock(q.code) : "") +
+        '<p><span class="yours">Your answer:</span> ' + fmt(r.picked) + "</p>" +
+        '<p><span class="theirs">Correct:</span> ' + fmt(q.a) + "</p>" +
+        "<p>" + inlineCode(q.exp) + "</p></div></details>");
+    });
+  }
+  $("retryBtn").style.display = missed.length ? "" : "none";
+  show("summary");
+}
+
+$("retryBtn").onclick = () => {
+  const missedQs = state.results.filter(r => !r.right).map(r => r.q);
+  if (missedQs.length) startGame(missedQs);
+};
+$("homeBtn").onclick = () => { show("home"); buildHome(); };
+
+buildHome();
+</script>
+</body>
+</html>
