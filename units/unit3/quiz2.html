@@ -1,0 +1,3907 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AP CSP Code Tracing Challenge</title>
+<style>
+  :root {
+    --stage-1: #3b0f8c;
+    --stage-2: #6a1fd1;
+    --panel: #ffffff;
+    --panel-soft: #f3efff;
+    --ink: #1c1433;
+    --ink-soft: #5b5378;
+    --code-bg: #1d1730;
+    --code-ink: #f4f1ff;
+    --code-accent: #ffd447;
+    --t-red: #e21b3c;
+    --t-blue: #1368ce;
+    --t-yellow: #c98f00;
+    --t-green: #26890c;
+    --ok: #1f9d55;
+    --bad: #d7263d;
+    --gold: #ffd447;
+    --radius-lg: 22px;
+    --radius-sm: 10px;
+    color-scheme: light;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --stage-1: #150634;
+      --stage-2: #2c0b66;
+      --panel: #221a3b;
+      --panel-soft: #2d2450;
+      --ink: #f2eeff;
+      --ink-soft: #b9b0d9;
+      --code-bg: #120d22;
+      color-scheme: dark;
+    }
+  }
+
+  * { box-sizing: border-box; }
+  html { font-size: clamp(17px, 0.9vw + 11px, 24px); }
+  body {
+    margin: 0;
+    min-height: 100vh;
+    font-family: ui-rounded, "SF Pro Rounded", "Nunito", "Segoe UI", system-ui, -apple-system, sans-serif;
+    color: var(--ink);
+    background:
+      radial-gradient(circle at 12% 18%, rgba(255,255,255,0.08) 0 120px, transparent 121px),
+      radial-gradient(circle at 88% 82%, rgba(255,255,255,0.06) 0 180px, transparent 181px),
+      linear-gradient(160deg, var(--stage-1), var(--stage-2));
+    background-attachment: fixed;
+  }
+  code, pre, .mono { font-family: ui-monospace, "SF Mono", Menlo, Consolas, "Courier New", monospace; }
+  button { font-family: inherit; cursor: pointer; }
+  button:focus-visible, .sec-card:focus-visible { outline: 4px solid var(--gold); outline-offset: 3px; }
+  .screen { display: none; max-width: 1200px; margin: 0 auto; padding: 1.2rem 1.2rem 3rem; }
+  .screen.active { display: block; }
+
+  /* ---------- HOME ---------- */
+  .brand { text-align: center; color: #fff; padding: 1.2rem 0 1.4rem; }
+  .brand h1 {
+    font-size: clamp(2.2rem, 5vw, 3.6rem);
+    margin: 0;
+    font-weight: 900;
+    letter-spacing: -0.02em;
+    text-shadow: 0 5px 0 rgba(0,0,0,0.25);
+  }
+  .brand p { margin: 0.4rem 0 0; font-size: 1.1rem; opacity: 0.9; }
+  .home-panel {
+    background: var(--panel);
+    border-radius: var(--radius-lg);
+    padding: 1.4rem;
+    box-shadow: 0 10px 0 rgba(0,0,0,0.25);
+  }
+  .home-panel h2 { margin: 0 0 0.8rem; font-size: 1.3rem; }
+  .sec-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 0.9rem; }
+  .sec-card {
+    display: flex; align-items: center; gap: 0.9rem;
+    border: 4px solid transparent;
+    background: var(--panel-soft);
+    color: var(--ink);
+    border-radius: 16px;
+    padding: 0.9rem 1rem;
+    text-align: left;
+    font-size: 1rem;
+    transition: transform 0.12s;
+  }
+  .sec-card:active { transform: scale(0.98); }
+  .sec-card .badge {
+    flex: none; width: 3.4rem; height: 3.4rem; border-radius: 14px;
+    display: grid; place-items: center; color: #fff; font-weight: 900; font-size: 1rem;
+  }
+  .sec-card .meta strong { display: block; font-size: 1.05rem; }
+  .sec-card .meta span { color: var(--ink-soft); font-size: 0.9rem; }
+  .sec-card .check {
+    margin-left: auto; width: 1.7rem; height: 1.7rem; border-radius: 50%;
+    border: 3px solid var(--ink-soft); display: grid; place-items: center; font-weight: 900; color: #fff;
+  }
+  .sec-card.on { border-color: var(--sec-color); }
+  .sec-card.on .check { background: var(--sec-color); border-color: var(--sec-color); }
+  .controls { display: flex; flex-wrap: wrap; gap: 1.2rem; align-items: center; margin-top: 1.3rem; }
+  .control-group { display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; }
+  .control-group > span { font-weight: 800; }
+  .seg { display: inline-flex; background: var(--panel-soft); border-radius: 999px; padding: 4px; }
+  .seg button {
+    border: 0; background: transparent; color: var(--ink); padding: 0.45rem 0.95rem;
+    border-radius: 999px; font-size: 0.95rem; font-weight: 800;
+  }
+  .seg button.on { background: var(--stage-2); color: #fff; }
+  .link-btn { border: 0; background: none; color: var(--stage-2); font-weight: 800; font-size: 0.95rem; text-decoration: underline; }
+  @media (prefers-color-scheme: dark) { .link-btn { color: var(--gold); } }
+  .start-row { display: flex; align-items: center; justify-content: space-between; gap: 1rem; margin-top: 1.4rem; flex-wrap: wrap; }
+  .count-note { color: var(--ink-soft); font-size: 1rem; }
+  .big-btn {
+    border: 0; border-radius: 14px; padding: 0.9rem 2.2rem;
+    font-size: 1.3rem; font-weight: 900; color: #fff; background: var(--ink);
+    box-shadow: 0 6px 0 rgba(0,0,0,0.35);
+    transition: transform 0.08s, box-shadow 0.08s;
+  }
+  @media (prefers-color-scheme: dark) { .big-btn { background: var(--gold); color: #1c1433; } }
+  .big-btn:active { transform: translateY(4px); box-shadow: 0 2px 0 rgba(0,0,0,0.35); }
+  .big-btn:disabled { opacity: 0.45; cursor: not-allowed; }
+  .big-btn.alt { background: var(--stage-2); color: #fff; }
+
+  /* ---------- GAME ---------- */
+  .hud { display: flex; align-items: center; gap: 0.8rem; color: #fff; flex-wrap: wrap; }
+  .chip {
+    background: rgba(255,255,255,0.16); border-radius: 999px; padding: 0.4rem 0.95rem;
+    font-weight: 800; font-size: 0.95rem; white-space: nowrap;
+  }
+  .chip.sec { background: var(--sec-color, #fff); }
+  .hud .spacer { flex: 1; }
+  .score-box {
+    background: #fff; color: #1c1433; border-radius: 12px; padding: 0.35rem 1rem;
+    font-weight: 900; font-size: 1.25rem; min-width: 6.5rem; text-align: center;
+  }
+  .score-box small { display: block; font-size: 0.65rem; font-weight: 800; color: #6b6488; margin-bottom: -2px; }
+  .quit { border: 0; background: rgba(0,0,0,0.25); color: #fff; border-radius: 10px; padding: 0.45rem 0.9rem; font-weight: 800; font-size: 0.9rem; }
+  .bar { height: 14px; background: rgba(255,255,255,0.18); border-radius: 999px; overflow: hidden; margin: 0.8rem 0 0.4rem; }
+  .bar > div { height: 100%; background: var(--gold); width: 0; transition: width 0.35s ease; }
+  .timer-bar { height: 10px; background: rgba(0,0,0,0.25); border-radius: 999px; overflow: hidden; margin-bottom: 0.8rem; }
+  .timer-bar > div { height: 100%; background: #fff; width: 100%; }
+  .timer-bar.low > div { background: #ff6b6b; }
+  .q-card {
+    background: var(--panel); border-radius: var(--radius-lg); padding: 1.3rem 1.5rem;
+    box-shadow: 0 8px 0 rgba(0,0,0,0.25); margin-bottom: 1rem;
+  }
+  .q-text { font-size: 1.45rem; font-weight: 800; line-height: 1.35; margin: 0; }
+  .q-text code, .exp code, .review code {
+    background: var(--panel-soft); padding: 0.05em 0.35em; border-radius: 6px; font-size: 0.92em;
+  }
+  pre.code {
+    background: var(--code-bg); color: var(--code-ink);
+    border-radius: 14px; padding: 1rem 1.2rem; margin: 1rem 0 0;
+    font-size: 1.15rem; line-height: 1.5; overflow-x: auto; white-space: pre;
+    border-left: 8px solid var(--sec-color, var(--gold));
+  }
+  pre.code .cm { color: #9d93c4; font-style: italic; }
+  .answers { display: grid; grid-template-columns: 1fr 1fr; gap: 0.8rem; }
+  @media (max-width: 760px) { .answers { grid-template-columns: 1fr; } }
+  .ans {
+    position: relative; display: flex; align-items: center; gap: 0.9rem;
+    border: 0; border-radius: 16px; padding: 1rem 1.1rem; min-height: 5rem;
+    color: #fff; font-size: 1.2rem; font-weight: 800; text-align: left; line-height: 1.3;
+    box-shadow: 0 6px 0 rgba(0,0,0,0.3);
+    transition: transform 0.08s, opacity 0.25s, filter 0.25s;
+  }
+  .ans:not(:disabled):hover { filter: brightness(1.08); }
+  .ans:not(:disabled):active { transform: translateY(4px); box-shadow: 0 2px 0 rgba(0,0,0,0.3); }
+  .ans .shape { flex: none; font-size: 1.7rem; width: 2rem; text-align: center; text-shadow: 0 2px 0 rgba(0,0,0,0.25); }
+  .ans .label { flex: 1; min-width: 0; }
+  .ans .label pre { margin: 0; font-size: 1rem; white-space: pre-wrap; font-weight: 700; line-height: 1.4; }
+  .ans .key { position: absolute; top: 6px; right: 10px; font-size: 0.7rem; opacity: 0.75; }
+  .ans.c0 { background: var(--t-red); }
+  .ans.c1 { background: var(--t-blue); }
+  .ans.c2 { background: var(--t-yellow); }
+  .ans.c3 { background: var(--t-green); }
+  .ans:disabled { cursor: default; }
+  .ans.dim { opacity: 0.3; filter: grayscale(0.6); }
+  .ans .mark {
+    flex: none; width: 2.2rem; height: 2.2rem; border-radius: 50%; background: #fff;
+    display: none; place-items: center; font-size: 1.3rem; font-weight: 900;
+  }
+  .ans.right .mark { display: grid; color: var(--ok); }
+  .ans.wrong .mark { display: grid; color: var(--bad); }
+  .ans.right { outline: 5px solid #fff; outline-offset: -5px; }
+
+  .feedback {
+    display: none; margin-top: 1rem; background: var(--panel); border-radius: var(--radius-lg);
+    overflow: hidden; box-shadow: 0 8px 0 rgba(0,0,0,0.25);
+  }
+  .feedback.show { display: block; animation: pop 0.25s ease-out; }
+  @keyframes pop { from { transform: scale(0.97); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+  .fb-head { display: flex; align-items: center; gap: 0.8rem; padding: 0.9rem 1.4rem; color: #fff; font-weight: 900; font-size: 1.5rem; }
+  .fb-head.ok { background: var(--ok); }
+  .fb-head.bad { background: var(--bad); }
+  .fb-head .pts { margin-left: auto; font-size: 1.15rem; background: rgba(0,0,0,0.2); padding: 0.25rem 0.8rem; border-radius: 999px; }
+  .fb-body { padding: 1rem 1.4rem 1.3rem; }
+  .exp { font-size: 1.15rem; line-height: 1.5; margin: 0 0 1rem; }
+  .correct-line { font-weight: 800; margin: 0 0 0.6rem; font-size: 1.1rem; }
+  .fb-actions { display: flex; justify-content: flex-end; align-items: center; gap: 1rem; }
+  .hint { color: var(--ink-soft); font-size: 0.85rem; }
+
+  /* ---------- SUMMARY ---------- */
+  .podium { text-align: center; color: #fff; padding: 1rem 0 1.4rem; }
+  .podium .trophy { font-size: 4rem; line-height: 1; }
+  .podium h1 { font-size: clamp(2rem, 4.5vw, 3.2rem); margin: 0.3rem 0 0; font-weight: 900; }
+  .podium .final { font-size: clamp(2.8rem, 7vw, 4.8rem); font-weight: 900; color: var(--gold); text-shadow: 0 5px 0 rgba(0,0,0,0.3); line-height: 1.1; }
+  .podium p { margin: 0.2rem 0; font-size: 1.15rem; opacity: 0.95; }
+  .sum-grid { display: grid; grid-template-columns: 1.1fr 1fr; gap: 1rem; }
+  @media (max-width: 860px) { .sum-grid { grid-template-columns: 1fr; } }
+  .panel { background: var(--panel); border-radius: var(--radius-lg); padding: 1.3rem 1.4rem; box-shadow: 0 8px 0 rgba(0,0,0,0.25); }
+  .panel h2 { margin: 0 0 0.9rem; font-size: 1.3rem; }
+  .stat-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.7rem; }
+  .stat { background: var(--panel-soft); border-radius: 14px; padding: 0.8rem; text-align: center; }
+  .stat b { display: block; font-size: 1.9rem; }
+  .stat span { color: var(--ink-soft); font-size: 0.9rem; }
+  .sec-row { margin-bottom: 0.85rem; }
+  .sec-row .top { display: flex; justify-content: space-between; font-weight: 800; font-size: 1rem; margin-bottom: 0.25rem; }
+  .sec-row .track { height: 16px; background: var(--panel-soft); border-radius: 999px; overflow: hidden; }
+  .sec-row .fill { height: 100%; border-radius: 999px; }
+  .review details { border-radius: 14px; background: var(--panel-soft); margin-bottom: 0.7rem; padding: 0.7rem 1rem; }
+  .review summary { cursor: pointer; font-weight: 800; font-size: 1.05rem; line-height: 1.35; }
+  .review .r-body { padding-top: 0.6rem; font-size: 1.05rem; line-height: 1.5; }
+  .review .r-body pre.code { font-size: 1rem; }
+  .review .yours { color: var(--bad); font-weight: 800; }
+  .review .theirs { color: var(--ok); font-weight: 800; }
+  .sum-actions { display: flex; gap: 1rem; flex-wrap: wrap; justify-content: center; margin-top: 1.4rem; }
+  .empty { color: var(--ink-soft); font-size: 1.05rem; }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation: none !important; transition: none !important; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ================= HOME ================= -->
+<section id="home" class="screen active" aria-label="Choose sections">
+  <div class="brand">
+    <h1>Code Tracing Challenge</h1>
+    <p>AP CSP &middot; 200 questions &middot; 10 at a time</p>
+  </div>
+  <div class="home-panel">
+    <h2>Choose sections <button class="link-btn" id="toggleAll" type="button">Select none</button></h2>
+    <div class="sec-grid" id="secGrid"></div>
+    <div class="controls">
+      <div class="control-group">
+        <span>Timer</span>
+        <div class="seg" id="timerSeg">
+          <button type="button" data-t="0" class="on">Off</button>
+          <button type="button" data-t="30">30 s</button>
+          <button type="button" data-t="60">60 s</button>
+        </div>
+      </div>
+      <div class="control-group">
+        <span>Round</span>
+        <div class="seg" id="sizeSeg">
+          <button type="button" data-n="10" class="on">10</button>
+          <button type="button" data-n="20">20</button>
+          <button type="button" data-n="0">All</button>
+        </div>
+      </div>
+      <div class="control-group">
+        <span>Order</span>
+        <div class="seg" id="orderSeg">
+          <button type="button" data-o="shuffle" class="on">Shuffled</button>
+          <button type="button" data-o="section">By section</button>
+        </div>
+      </div>
+    </div>
+    <div class="start-row">
+      <div class="count-note" id="countNote"></div>
+      <button class="big-btn" id="startBtn" type="button">Start</button>
+    </div>
+  </div>
+</section>
+
+<!-- ================= GAME ================= -->
+<section id="game" class="screen" aria-label="Quiz">
+  <div class="hud">
+    <span class="chip sec" id="secChip"></span>
+    <span class="chip" id="qCount"></span>
+    <span class="chip" id="streakChip">🔥 0</span>
+    <span class="spacer"></span>
+    <div class="score-box"><small>SCORE</small><span id="scoreVal">0</span></div>
+    <button class="quit" id="quitBtn" type="button">Quit</button>
+  </div>
+  <div class="bar" aria-hidden="true"><div id="progressFill"></div></div>
+  <div class="timer-bar" id="timerBar" hidden><div id="timerFill"></div></div>
+
+  <div class="q-card">
+    <p class="q-text" id="qText"></p>
+    <div id="qCode"></div>
+  </div>
+  <div class="answers" id="answers"></div>
+
+  <div class="feedback" id="feedback" aria-live="polite">
+    <div class="fb-head" id="fbHead"></div>
+    <div class="fb-body">
+      <p class="correct-line" id="correctLine"></p>
+      <p class="exp" id="expText"></p>
+      <div class="fb-actions">
+        <span class="hint">Press Enter</span>
+        <button class="big-btn alt" id="nextBtn" type="button">Next</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= SUMMARY ================= -->
+<section id="summary" class="screen" aria-label="Results">
+  <div class="podium">
+    <div class="trophy" id="trophy">🏆</div>
+    <h1 id="rankMsg"></h1>
+    <div class="final" id="finalScore">0</div>
+    <p id="finalLine"></p>
+  </div>
+  <div class="sum-grid">
+    <div class="panel">
+      <h2>How you did</h2>
+      <div class="stat-row">
+        <div class="stat"><b id="stCorrect">0</b><span>correct</span></div>
+        <div class="stat"><b id="stAcc">0%</b><span>accuracy</span></div>
+        <div class="stat"><b id="stStreak">0</b><span>best streak</span></div>
+      </div>
+      <h2 style="margin-top:1.3rem">By topic</h2>
+      <div id="secBreakdown"></div>
+    </div>
+    <div class="panel review">
+      <h2>Review missed questions</h2>
+      <div id="missedList"></div>
+    </div>
+  </div>
+  <div class="sum-actions">
+    <button class="big-btn alt" id="retryBtn" type="button">Retry missed questions</button>
+    <button class="big-btn alt" id="againBtn" type="button">Next 10 questions</button>
+    <button class="big-btn" id="homeBtn" type="button">Back to sections</button>
+  </div>
+</section>
+
+<script>
+/* =========================================================
+   SECTIONS
+   ========================================================= */
+const SECTIONS = [{"id": 1, "code": "3.1–3.3", "name": "Variables & Math", "color": "#e21b3c"}, {"id": 2, "code": "3.6–3.7", "name": "Conditionals", "color": "#1368ce"}, {"id": 3, "code": "3.8 · 3.15", "name": "Random & Iteration", "color": "#26890c"}, {"id": 4, "code": "3.12–3.13", "name": "Calling Procedures", "color": "#c98f00"}, {"id": 5, "code": "3.9", "name": "Developing Algorithms", "color": "#8a3ffc"}];
+
+const BANK = [
+{
+"id": 0,
+"s": 1,
+"q": "What is displayed?",
+"code": "let a = 7;\nlet b = 3;\na = a + b;\nb = a - b;\na = a - b;\nconsole.log(a + \" \" + b);",
+"opts": [
+"10 7",
+"3 7",
+"7 3",
+"10 3"
+],
+"a": 1,
+"exp": "Trace: a = 7 + 3 = 10. b = 10 − 3 = 7 (the original a). a = 10 − 7 = 3 (the original b). The values are swapped without a temp variable, so 3 7. '10 7' forgets that the last line also updates a.",
+"codeOpts": false,
+"fixed": false
+},
+{
+"id": 1,
+"s": 1,
+"q": "A student tries to swap a and b. What is displayed?",
+"code": "let a = 4;\nlet b = 9;\na = b;\nb = a;\nconsole.log(a + \" \" + b);",
+"opts": [
+"9 4",
+"4 4",
+"4 9",
+"9 9"
+],
+"a": 3,
+"exp": "a = b makes a 9, and the original 4 is lost. Then b = a copies that 9 into b. Both are 9. A swap needs a temporary variable to save one value before it is overwritten.",
+"codeOpts": false,
+"fixed": false
+},
+{
+"id": 2,
+"s": 1,
+"q": "What is displayed?",
+"code": "let x = 1;\nlet y = 2;\nlet z = 3;\nlet t = x;\nx = y;\ny = z;\nz = t;\nconsole.log(x + \" \" + y + \" \" + z);",
+"opts": [
+"3 1 2",
+"2 3 3",
+"2 3 1",
+"1 2 3"
+],
+"a": 2,
+"exp": "t saves the original x (1). x = y → 2. y = z → 3. z = t → 1. Each value rotates one position left: 2 3 1. '2 3 3' happens if you forget that t still holds 1.",
+"codeOpts": false,
+"fixed": false
+},
+{
+"id": 3,
+"s": 1,
+"q": "What is displayed?",
+"code": "let n = 5;\nn += 3;\nn *= 2;\nn -= 4;\nn %= 5;\nconsole.log(n);",
+"opts": [
+"2",
+"12",
+"3",
+"0"
+],
+"a": 0,
+"exp": "n += 3 → 8. n *= 2 → 16. n −= 4 → 12. n %= 5 → 12 % 5 = 2 (12 = 2×5 + 2). '12' stops before the last line runs.",
+"codeOpts": false,
+"fixed": false
+},
+{
+"id": 4,
+"s": 1,
+"q": "What is displayed?",
+"code": "let r = 10 + 6 / 2 * 3 - 4 % 3;\nconsole.log(r);",
+"opts": [
+"23",
+"10",
+"18",
+"15"
+],
+"a": 2,
+"exp": "*, /, and % happen before + and −, working left to right: 6 / 2 = 3, then 3 * 3 = 9, and 4 % 3 = 1. Then 10 + 9 − 1 = 18. '23' comes from (10 + 6) / 2 * 3 − 1; '10' comes from wrongly doing 2 * 3 first.",
+"codeOpts": false,
+"fixed": false
+},
+{
+"id": 5,
+"s": 1,
+"q": "Which expression is true exactly when the integer n is odd — including negative values of n?",
+"code": "",
+"opts": [
+"n % 2 !== 0",
+"n / 2 !== 0",
+"n % 2 === 1",
+"n % 1 === 0"
+],
+"a": 0,
+"exp": "In JavaScript, % keeps the sign of the left number: −3 % 2 is −1, not 1. So 'n % 2 === 1' fails for negative odd numbers. 'n % 2 !== 0' works for any odd n, since the remainder is 1 or −1. n / 2 is only 0 when n is 0, and n % 1 is 0 for every integer.",
+"codeOpts": true,
+"fixed": false
+},
+{
+"id": 6,
+"s": 1,
+"q": "Hours use a 24-hour clock (0–23). What is displayed?",
+"code": "let hour = 22;\nhour = (hour + 5) % 24;\nconsole.log(hour);",
+"opts": [
+"27",
+"4",
+"3",
+"5"
+],
+"a": 2,
+"exp": "22 + 5 = 27, and 27 % 24 = 3. The modulo wraps the value back into 0–23, so 5 hours after 22:00 is 3:00. '27' ignores the wrap-around.",
+"codeOpts": false,
+"fixed": false
+},
+{
+"id": 7,
+"s": 1,
+"q": "What is displayed?",
+"code": "console.log(Math.floor(-2.5) + \" \" + Math.round(-2.5));",
+"opts": [
+"-2 -3",
+"-2 -2",
+"-3 -3",
+"-3 -2"
+],
+"a": 3,
+"exp": "Math.floor always rounds DOWN, toward negative infinity: −2.5 → −3. Math.round rounds .5 UP, toward positive infinity: −2.5 → −2. A common mistake is to treat negative numbers as mirror images of positive ones.",
+"codeOpts": false,
+"fixed": false
+},
+{
+"id": 8,
+"s": 1,
+"q": "In p5.js, int() drops the decimal part (it truncates toward 0). What is displayed?",
+"code": "console.log(int(-7.8) + floor(-7.8));",
+"opts": [
+"-14",
+"-15",
+"-16",
+"15"
+],
+"a": 1,
+"exp": "int(−7.8) truncates toward 0 → −7. floor(−7.8) rounds down → −8. −7 + (−8) = −15. '−16' assumes int also rounds down, and '−14' assumes floor truncates.",
+"codeOpts": false,
+"fixed": false
+},
+{
+"id": 9,
+"s": 1,
+"q": "What is displayed?",
+"code": "let num = 4827;\nlet tens = floor(num / 10) % 10;\nconsole.log(tens);",
+"opts": [
+"7",
+"482",
+"2",
+"8"
+],
+"a": 2,
+"exp": "num / 10 = 482.7, floor → 482 (this removes the ones digit). 482 % 10 = 2, the last digit of 482, which is the tens digit of 4827. '482' forgets the % 10.",
+"codeOpts": false,
+"fixed": false
+},
+{
+"id": 10,
+"s": 1,
+"q": "What is displayed?",
+"code": "let n = 593;\nlet s = n % 10 + floor(n / 10) % 10 + floor(n / 100);\nconsole.log(s);",
+"opts": [
+"15",
+"17",
+"8",
+"18.23"
+],
+"a": 1,
+"exp": "n % 10 = 3 (ones digit). floor(59.3) % 10 = 59 % 10 = 9 (tens digit). floor(5.93) = 5 (hundreds digit). 3 + 9 + 5 = 17. Without floor, the decimals leak in and give 18.23.",
+"codeOpts": false,
+"fixed": false
+},
+{
+"id": 11,
+"s": 1,
+"q": "What is displayed?",
+"code": "console.log(2 + 3 + \"4\" + 5);",
+"opts": [
+"59",
+"545",
+"14",
+"2345"
+],
+"a": 1,
+"exp": "+ works left to right. 2 + 3 = 5 (both numbers). 5 + \"4\" = \"54\" (a number plus a string joins them as text). \"54\" + 5 = \"545\". Once a string appears, every + after it joins text instead of adding.",
+"codeOpts": false,
+"fixed": false
+},
+{
+"id": 12,
+"s": 1,
+"q": "What is displayed?",
+"code": "let x = 3;\nlet y = x;\nx = x * 2;\ny = y + x;\nx = y - x;\nconsole.log(x + \" \" + y);",
+"opts": [
+"6 9",
+"6 12",
+"3 9",
+"3 6"
+],
+"a": 2,
+"exp": "y = 3. x = 6. y = 3 + 6 = 9. x = 9 − 6 = 3. Changing x on line 3 does NOT change y — y got a copy of the value 3 on line 2.",
+"codeOpts": false,
+"fixed": false
+},
+{
+"id": 13,
+"s": 1,
+"q": "What is displayed?",
+"code": "let total = 17;\nlet count = 4;\nlet avg = round(total / count * 10) / 10;\nconsole.log(avg);",
+"opts": [
+"4.25",
+"4.3",
+"4.2",
+"4"
+],
+"a": 1,
+"exp": "17 / 4 = 4.25. × 10 = 42.5. round(42.5) = 43 (.5 rounds up). 43 / 10 = 4.3. This pattern rounds to one decimal place. '4.2' would come from floor instead of round.",
+"codeOpts": false,
+"fixed": false
+},
+{
+"id": 14,
+"s": 1,
+"q": "What is displayed?",
+"code": "let totalMin = 197;\nlet h = floor(totalMin / 60);\nlet m = totalMin % 60;\nconsole.log(h + \":\" + m);",
+"opts": [
+"3:37",
+"3.28:17",
+"3:28",
+"3:17"
+],
+"a": 3,
+"exp": "197 / 60 = 3.28…, floor → 3 hours. 197 % 60 = 197 − 180 = 17 minutes. '3:28' treats the decimal .28 as minutes, which is wrong — .28 of an hour is not 28 minutes.",
+"codeOpts": false,
+"fixed": false
+},
+{
+"id": 15,
+"s": 1,
+"q": "What is displayed?",
+"code": "let p = 2;\np += p * 3;\nconsole.log(p);",
+"opts": [
+"18",
+"6",
+"12",
+"8"
+],
+"a": 3,
+"exp": "p += p * 3 means p = p + (p * 3). The right side is computed first using the old p: 2 + 6 = 8. '12' wrongly reads it as (p + p) * 3.",
+"codeOpts": false,
+"fixed": false
+},
+{
+"id": 16,
+"s": 1,
+"q": "What is displayed?",
+"code": "let x = 4;\nlet y = 2;\nx *= y + 1;\nconsole.log(x);",
+"opts": [
+"12",
+"9",
+"6",
+"10"
+],
+"a": 0,
+"exp": "x *= y + 1 means x = x * (y + 1). The whole right side is evaluated first: 2 + 1 = 3, then 4 × 3 = 12. '9' wrongly computes x * y + 1.",
+"codeOpts": false,
+"fixed": false
+},
+{
+"id": 17,
+"s": 1,
+"q": "Which expression is equivalent to (n % 3 === 0 && n % 4 === 0) for every integer n?",
+"code": "",
+"opts": [
+"n % 12 === 0",
+"n % 7 === 0",
+"n % 3 === n % 4",
+"(n % 3) * (n % 4) === 1"
+],
+"a": 0,
+"exp": "A number divisible by both 3 and 4 is divisible by 12, because 3 and 4 share no common factors. Check the others: n % 7 tests a different number. n % 3 === n % 4 is true for n = 1 (1 === 1). (n % 3)*(n % 4) === 1 is also true for n = 1.",
+"codeOpts": true,
+"fixed": false
+},
+{
+"id": 18,
+"s": 1,
+"q": "Positions are numbered 0–4 around a circle. What is displayed?",
+"code": "let pos = 0;\npos = (pos + 7) % 5;\npos = (pos + 7) % 5;\npos = (pos + 7) % 5;\nconsole.log(pos);",
+"opts": [
+"1",
+"21",
+"6",
+"0"
+],
+"a": 0,
+"exp": "7 % 5 = 2. (2 + 7) % 5 = 9 % 5 = 4. (4 + 7) % 5 = 11 % 5 = 1. '21' forgets the modulo and just adds 7 three times.",
+"codeOpts": false,
+"fixed": false
+},
+{
+"id": 19,
+"s": 1,
+"q": "What is displayed?",
+"code": "let k = 20 - 4 * 2 + 6 / 3;\nconsole.log(k);",
+"opts": [
+"10",
+"4",
+"34",
+"14"
+],
+"a": 3,
+"exp": "First 4 * 2 = 8 and 6 / 3 = 2. Then left to right: 20 − 8 = 12, 12 + 2 = 14. '34' does (20 − 4) * 2 + 2; '10' does 20 − (8 + 2).",
+"codeOpts": false,
+"fixed": false
+},
+{
+"id": 20,
+"s": 1,
+"q": "This code calculates how many sheets are needed to print 47 pages at 6 pages per sheet. What is displayed?",
+"code": "let pages = 47;\nlet perSheet = 6;\nlet sheets = floor((pages + perSheet - 1) / perSheet);\nconsole.log(sheets);",
+"opts": [
+"9",
+"7",
+"7.83",
+"8"
+],
+"a": 3,
+"exp": "(47 + 6 − 1) / 6 = 52 / 6 = 8.67, floor → 8. Adding (perSheet − 1) before dividing makes floor round UP whenever there is a leftover, so the last 5 pages get their own sheet. floor(47 / 6) would give 7.",
+"codeOpts": false,
+"fixed": false
+},
+{
+"id": 21,
+"s": 1,
+"q": "What is displayed?",
+"code": "let a = 10;\nlet b = a;\na = 20;\nconsole.log(b);",
+"opts": [
+"undefined",
+"10",
+"30",
+"20"
+],
+"a": 1,
+"exp": "b = a copies the VALUE 10 into b at that moment. Changing a afterward has no effect on b. Variables holding numbers don't stay linked.",
+"codeOpts": false,
+"fixed": false
+},
+{
+"id": 22,
+"s": 1,
+"q": "What is displayed?",
+"code": "let v = 23;\nlet r = round(v / 5) * 5;\nconsole.log(r);",
+"opts": [
+"25",
+"23",
+"4.6",
+"20"
+],
+"a": 0,
+"exp": "23 / 5 = 4.6. round(4.6) = 5. 5 × 5 = 25. This rounds v to the nearest multiple of 5. Using floor instead would give 20.",
+"codeOpts": false,
+"fixed": false
+},
+{
+"id": 23,
+"s": 1,
+"q": "What is displayed?",
+"code": "let t = 100;\nt %= 7;\nt *= t;\nt %= 10;\nconsole.log(t);",
+"opts": [
+"4",
+"2",
+"9",
+"0"
+],
+"a": 0,
+"exp": "100 % 7 = 2 (98 is 14 × 7). t *= t → 2 × 2 = 4. 4 % 10 = 4.",
+"codeOpts": false,
+"fixed": false
+},
+{
+"id": 24,
+"s": 1,
+"q": "What is displayed?",
+"code": "let c = 9;\nlet f = c * 9 / 5 + 32;\nconsole.log(f);",
+"opts": [
+"41",
+"16.2",
+"48",
+"48.2"
+],
+"a": 3,
+"exp": "9 × 9 = 81. 81 / 5 = 16.2. 16.2 + 32 = 48.2. JavaScript keeps the decimal; nothing rounds it. '16.2' forgets the + 32.",
+"codeOpts": false,
+"fixed": false
+},
+{
+"id": 25,
+"s": 1,
+"q": "What is displayed?",
+"code": "let n = 47;\nlet rev = (n % 10) * 10 + floor(n / 10);\nconsole.log(rev);",
+"opts": [
+"704",
+"11",
+"74",
+"47"
+],
+"a": 2,
+"exp": "n % 10 = 7, then 7 × 10 = 70. floor(47 / 10) = 4. 70 + 4 = 74. This reverses a two-digit number. '11' adds the digits instead.",
+"codeOpts": false,
+"fixed": false
+},
+{
+"id": 26,
+"s": 1,
+"q": "Which code segment does NOT correctly swap the values of x and y?",
+"code": "",
+"opts": [
+"let t = y;\ny = x;\nx = t;",
+"x = x + y;\ny = x - y;\nx = x - y;",
+"let t = x;\nx = y;\ny = t;",
+"let t = x;\nx = y;\ny = x;"
+],
+"a": 3,
+"exp": "In the failing segment, after x = y both variables hold y's value. Then y = x copies that same value back, so the original x (saved in t) is never used. The other three save or reconstruct the lost value: two use a temp variable, and one uses the add/subtract trick.",
+"codeOpts": true,
+"fixed": false
+},
+{
+"id": 27,
+"s": 1,
+"q": "What is displayed?",
+"code": "let score = 0;\nscore += 5;\nscore -= 2;\nscore *= 3;\nscore /= 2;\nconsole.log(score);",
+"opts": [
+"4",
+"9",
+"6.5",
+"4.5"
+],
+"a": 3,
+"exp": "0 + 5 = 5. 5 − 2 = 3. 3 × 3 = 9. 9 / 2 = 4.5. JavaScript division keeps decimals, so the result is not 4.",
+"codeOpts": false,
+"fixed": false
+},
+{
+"id": 28,
+"s": 1,
+"q": "What is displayed?",
+"code": "let n = 14;\nlet isEven = n % 2 === 0;\nlet big = n > 20;\nconsole.log(isEven + \" \" + big);",
+"opts": [
+"true false",
+"false false",
+"true true",
+"0 false"
+],
+"a": 0,
+"exp": "A comparison produces a Boolean value. 14 % 2 = 0, so 0 === 0 is true. 14 > 20 is false. The variables store true and false, not numbers.",
+"codeOpts": false,
+"fixed": false
+},
+{
+"id": 29,
+"s": 1,
+"q": "What is displayed?",
+"code": "let i = 5;\ni++;\ni += i;\nconsole.log(i);",
+"opts": [
+"11",
+"12",
+"6",
+"10"
+],
+"a": 1,
+"exp": "i++ adds 1 → 6. i += i means i = 6 + 6 = 12. '11' wrongly adds the old value 5 to the new value 6.",
+"codeOpts": false,
+"fixed": false
+},
+{
+"id": 30,
+"s": 1,
+"q": "Days are numbered 0–6. Which expression moves day BACK 5 days and always gives a result from 0 to 6?",
+"code": "",
+"opts": [
+"day - 5 % 7",
+"(day + 5) % 7",
+"(day - 5) % 7",
+"(day - 5 + 7) % 7"
+],
+"a": 3,
+"exp": "If day is 2, (2 − 5) % 7 is −3 in JavaScript, because % keeps the negative sign. Adding 7 first makes the value non-negative: (2 − 5 + 7) % 7 = 4. 'day − 5 % 7' does the % first, giving day − 5. '(day + 5) % 7' moves forward, not back.",
+"codeOpts": true,
+"fixed": false
+},
+{
+"id": 31,
+"s": 1,
+"q": "What is displayed?",
+"code": "let x = 7;\nlet y = 2;\nconsole.log(x / y + \" \" + floor(x / y) + \" \" + x % y);",
+"opts": [
+"3.5 3.5 1",
+"3 3 1",
+"3.5 3 0.5",
+"3.5 3 1"
+],
+"a": 3,
+"exp": "7 / 2 = 3.5 (JavaScript does not do integer division). floor(3.5) = 3. 7 % 2 = 1, the remainder (7 = 3 × 2 + 1).",
+"codeOpts": false,
+"fixed": false
+},
+{
+"id": 32,
+"s": 1,
+"q": "What is displayed?",
+"code": "let price = 4.567;\nlet p = round(price * 100) / 100;\nconsole.log(p);",
+"opts": [
+"4.57",
+"4.56",
+"4.6",
+"457"
+],
+"a": 0,
+"exp": "4.567 × 100 = 456.7. round → 457. 457 / 100 = 4.57. This rounds to 2 decimal places. '4.56' is what floor would give, and '457' forgets to divide back.",
+"codeOpts": false,
+"fixed": false
+},
+{
+"id": 33,
+"s": 1,
+"q": "What is displayed?",
+"code": "let w = 2;\nlet h = 3;\nw = w + h;\nh = w * h;\nw = h - w;\nconsole.log(w + \" \" + h);",
+"opts": [
+"10 15",
+"-3 15",
+"10 6",
+"5 15"
+],
+"a": 0,
+"exp": "w = 2 + 3 = 5. h = 5 × 3 = 15 (this uses the NEW w). w = 15 − 5 = 10. Each line uses the most recent values.",
+"codeOpts": false,
+"fixed": false
+},
+{
+"id": 34,
+"s": 1,
+"q": "What is displayed?",
+"code": "let s = 3725;\nlet h = floor(s / 3600);\nlet m = floor(s % 3600 / 60);\nlet sec = s % 60;\nconsole.log(h + \" \" + m + \" \" + sec);",
+"opts": [
+"1 62 5",
+"1.03 2 5",
+"1 2 25",
+"1 2 5"
+],
+"a": 3,
+"exp": "3725 / 3600 = 1.03 → 1 hour. % and / have equal precedence and run left to right: (3725 % 3600) = 125, then 125 / 60 = 2.08 → 2 minutes. 3725 % 60 = 5 seconds. '62' would come from floor(3725 / 60) without removing the hour first.",
+"codeOpts": false,
+"fixed": false
+},
+{
+"id": 35,
+"s": 1,
+"q": "Which expression produces 1, 2, 3, 1, 2, 3 for n = 0, 1, 2, 3, 4, 5?",
+"code": "",
+"opts": [
+"n % 4",
+"(n + 1) % 3",
+"n % 3 + 1",
+"n % 3"
+],
+"a": 2,
+"exp": "n % 3 gives 0, 1, 2, 0, 1, 2. Adding 1 AFTER the modulo shifts this to 1, 2, 3, 1, 2, 3. (n + 1) % 3 gives 1, 2, 0, … — the + 1 happens before the wrap, so it never reaches 3.",
+"codeOpts": true,
+"fixed": false
+},
+{
+"id": 36,
+"s": 1,
+"q": "What is displayed?",
+"code": "let a = \"12\";\nlet b = int(a) + 3;\nlet c = a + 3;\nconsole.log(b + \" \" + c);",
+"opts": [
+"15 15",
+"15 123",
+"123 15",
+"123 123"
+],
+"a": 1,
+"exp": "int(\"12\") converts the string to the number 12, so b = 15. a is still the string \"12\", so a + 3 joins the text and gives \"123\".",
+"codeOpts": false,
+"fixed": false
+},
+{
+"id": 37,
+"s": 1,
+"q": "What is displayed?",
+"code": "let x = 2;\nlet y = 5;\nx = y;\ny = y + x;\nx = x * y;\nconsole.log(x + \" \" + y);",
+"opts": [
+"50 7",
+"20 10",
+"10 10",
+"50 10"
+],
+"a": 3,
+"exp": "x = 5. y = 5 + 5 = 10. x = 5 × 10 = 50. '50 7' forgets that x already became 5 before y was updated.",
+"codeOpts": false,
+"fixed": false
+},
+{
+"id": 38,
+"s": 1,
+"q": "What is displayed?",
+"code": "let q = floor(-7 / 2);\nlet r = -7 % 2;\nconsole.log(q + \" \" + r);",
+"opts": [
+"-4 1",
+"-3 -1",
+"-3 1",
+"-4 -1"
+],
+"a": 3,
+"exp": "−7 / 2 = −3.5. floor rounds DOWN → −4. JavaScript's % keeps the sign of the left number: −7 % 2 = −1. Students often guess −3 (truncating) or +1 (math-class modulo).",
+"codeOpts": false,
+"fixed": false
+},
+{
+"id": 39,
+"s": 1,
+"q": "A student wants the average of a, b, and c. What is displayed?",
+"code": "let a = 3;\nlet b = 6;\nlet c = 9;\nlet avg = a + b + c / 3;\nconsole.log(avg);",
+"opts": [
+"4",
+"18",
+"12",
+"6"
+],
+"a": 2,
+"exp": "Division happens before addition: c / 3 = 3, then 3 + 6 + 3 = 12. The correct average needs parentheses: (a + b + c) / 3 = 18 / 3 = 6.",
+"codeOpts": false,
+"fixed": false
+},
+{
+"id": 40,
+"s": 2,
+"q": "What is displayed?",
+"code": "let x = 15;\nif (x > 10) {\n  if (x % 2 === 0) {\n    console.log(\"A\");\n  } else {\n    console.log(\"B\");\n  }\n} else {\n  console.log(\"C\");\n}",
+"opts": [
+"A",
+"B C",
+"B",
+"C"
+],
+"a": 2,
+"exp": "15 > 10 is true, so the program enters the outer block. Inside, 15 % 2 = 1, so 1 === 0 is false and the inner else prints B. The outer else (C) is skipped because the outer if already ran.",
+"codeOpts": false,
+"fixed": false
+},
+{
+"id": 41,
+"s": 2,
+"q": "What is displayed?",
+"code": "let n = 12;\nlet msg = \"\";\nif (n > 5) {\n  msg += \"x\";\n}\nif (n > 10) {\n  msg += \"y\";\n}\nif (n > 15) {\n  msg += \"z\";\n}\nconsole.log(msg);",
+"opts": [
+"xyz",
+"x",
+"xy",
+"y"
+],
+"a": 2,
+"exp": "These are three SEPARATE if statements, so every condition is checked. 12 > 5 adds x, 12 > 10 adds y, and 12 > 15 is false. Result: xy. Only an else-if chain would stop after the first true branch.",
+"codeOpts": false,
+"fixed": false
+},
+{
+"id": 42,
+"s": 2,
+"q": "What is displayed?",
+"code": "let n = 12;\nlet msg = \"\";\nif (n > 5) {\n  msg += \"x\";\n} else if (n > 10) {\n  msg += \"y\";\n} else if (n > 15) {\n  msg += \"z\";\n}\nconsole.log(msg);",
+"opts": [
+"y",
+"xyz",
+"x",
+"xy"
+],
+"a": 2,
+"exp": "In an if / else if chain, only the FIRST true branch runs. 12 > 5 is true, so x is added and the remaining branches are skipped, even though 12 > 10 is also true.",
+"codeOpts": false,
+"fixed": false
+},
+{
+"id": 43,
+"s": 2,
+"q": "What is displayed?",
+"code": "let score = 95;\nlet grade;\nif (score >= 70) {\n  grade = \"C\";\n} else if (score >= 80) {\n  grade = \"B\";\n} else if (score >= 90) {\n  grade = \"A\";\n}\nconsole.log(grade);",
+"opts": [
+"C",
+"CBA",
+"A",
+"B"
+],
+"a": 0,
+"exp": "95 >= 70 is true, so grade becomes C and the chain stops. The B and A branches can never run for scores of 80 or more. The conditions should be checked from highest to lowest.",
+"codeOpts": false,
+"fixed": false
+},
+{
+"id": 44,
+"s": 2,
+"q": "Which expression is equivalent to !(a && b) for all Boolean values a and b?",
+"code": "",
+"opts": [
+"!a || !b",
+"a || b",
+"!a && b",
+"!a && !b"
+],
+"a": 0,
+"exp": "De Morgan's Law: NOT (A AND B) = (NOT A) OR (NOT B). Negating flips && to || and negates each part. Check a = true, b = false: !(true && false) = true, and !a || !b = false || true = true. But !a && !b = false.",
+"codeOpts": true,
+"fixed": false
+},
+{
+"id": 45,
+"s": 2,
+"q": "Which expression is equivalent to !(x > 5 || y <= 3)?",
+"code": "",
+"opts": [
+"x > 5 && y <= 3",
+"x < 5 && y > 3",
+"x <= 5 || y > 3",
+"x <= 5 && y > 3"
+],
+"a": 3,
+"exp": "De Morgan's Law turns || into && and negates each comparison. The opposite of x > 5 is x <= 5, not x < 5. The opposite of y <= 3 is y > 3.",
+"codeOpts": true,
+"fixed": false
+},
+{
+"id": 46,
+"s": 2,
+"q": "What is displayed?",
+"code": "let a = 4;\nlet b = 7;\nlet c = 2;\nlet e1 = a > b && b < c || a % c === 0;\nlet e2 = a > b && (b < c || a % c === 0);\nconsole.log(e1 + \" \" + e2);",
+"opts": [
+"true false",
+"false false",
+"true true",
+"false true"
+],
+"a": 0,
+"exp": "&& is evaluated before ||. e1 = (false && false) || (4 % 2 === 0) = false || true = true. In e2 the parentheses group the || first: false && (false || true) = false && true = false.",
+"codeOpts": false,
+"fixed": false
+},
+{
+"id": 47,
+"s": 2,
+"q": "What is displayed?",
+"code": "let calls = 0;\nfunction check() {\n  calls += 1;\n  return true;\n}\nlet a = 3;\nif (a > 5 && check()) { }\nif (a < 5 || check()) { }\nif (a < 5 && check()) { }\nconsole.log(calls);",
+"opts": [
+"0",
+"2",
+"3",
+"1"
+],
+"a": 3,
+"exp": "Short-circuit evaluation: in line 1, a > 5 is false, so && never calls check(). In line 2, a < 5 is true, so || never calls check(). In line 3, a < 5 is true, so && must call check() → calls = 1.",
+"codeOpts": false,
+"fixed": false
+},
+{
+"id": 48,
+"s": 2,
+"q": "Which condition is true exactly when temp is from 60 to 80, inclusive?",
+"code": "",
+"opts": [
+"temp > 60 && temp < 80",
+"temp >= 60 && temp <= 80",
+"60 <= temp <= 80",
+"temp >= 60 || temp <= 80"
+],
+"a": 1,
+"exp": "Both bounds must be true at once, so use && with >= and <=. '60 <= temp <= 80' looks right but JavaScript evaluates (60 <= temp) first, which gives true or false, and then compares that to 80 — always true. The || version is true for every number, and > / < leave out 60 and 80.",
+"codeOpts": true,
+"fixed": false
+},
+{
+"id": 49,
+"s": 2,
+"q": "What is displayed?",
+"code": "let t = 100;\nif (60 <= t <= 80) {\n  console.log(\"comfortable\");\n} else {\n  console.log(\"not\");\n}",
+"opts": [
+"not",
+"An error message",
+"comfortable",
+"Nothing"
+],
+"a": 2,
+"exp": "JavaScript evaluates left to right: (60 <= 100) is true. Then true <= 80 converts true to 1, and 1 <= 80 is true. So it prints comfortable even though 100 is out of range. The correct test is t >= 60 && t <= 80.",
+"codeOpts": false,
+"fixed": false
+},
+{
+"id": 50,
+"s": 2,
+"q": "What is displayed?",
+"code": "let a = 3;\nlet b = 8;\nif (a > 5) {\n  if (b > 5) {\n    console.log(\"P\");\n  } else {\n    console.log(\"Q\");\n  }\n} else if (b > 5) {\n  console.log(\"R\");\n} else {\n  console.log(\"S\");\n}",
+"opts": [
+"R",
+"Q",
+"P",
+"S"
+],
+"a": 0,
+"exp": "a > 5 is false, so the whole first block, including P and Q, is skipped. Next, b > 5 (8 > 5) is true → R.",
+"codeOpts": false,
+"fixed": false
+},
+{
+"id": 51,
+"s": 2,
+"q": "What is displayed?",
+"code": "let x = 7;\nlet result = 0;\nif (x % 2 === 1) {\n  result += 1;\n}\nif (x > 5) {\n  result += 10;\n} else if (x > 0) {\n  result += 100;\n}\nif (x % 7 === 0 || x < 0) {\n  result += 1000;\n}\nconsole.log(result);",
+"opts": [
+"1111",
+"111",
+"11",
+"1011"
+],
+"a": 3,
+"exp": "7 is odd → +1. 7 > 5 → +10, and the else-if (+100) is skipped. 7 % 7 === 0 is true, so the || is true → +1000. Total 1011.",
+"codeOpts": false,
+"fixed": false
+},
+{
+"id": 52,
+"s": 2,
+"q": "Goal: price is 5 for ages under 12, 8 for ages 12–64, and 6 for ages 65 and up. Which age REVEALS the error in this code?",
+"code": "if (age < 12) {\n  price = 5;\n} else if (age > 65) {\n  price = 6;\n} else {\n  price = 8;\n}",
+"opts": [
+"70",
+"65",
+"64",
+"12"
+],
+"a": 1,
+"exp": "At 65 the goal says 6, but 65 > 65 is false, so the code gives 8. The condition should be age >= 65. Ages 12, 64, and 70 all give the correct price. Testing exactly at a boundary is what catches the error.",
+"codeOpts": false,
+"fixed": false
+},
+{
+"id": 53,
+"s": 2,
+"q": "For which value of y is this expression true?",
+"code": "(y % 4 === 0 && y % 100 !== 0) || y % 400 === 0",
+"opts": [
+"2000",
+"2100",
+"1900",
+"2023"
+],
+"a": 0,
+"exp": "This is the leap-year rule. 2000: the left side fails (2000 % 100 is 0), but 2000 % 400 === 0, so the whole expression is true. 1900 and 2100 are divisible by 100 but not 400 → false. 2023 is not divisible by 4 → false.",
+"codeOpts": false,
+"fixed": false
+},
+{
+"id": 54,
+"s": 2,
+"q": "Which of the code segments below assign the same value to y for every possible value of x?",
+"code": "// Segment I\nif (x > 0) {\n  y = 1;\n} else {\n  y = 2;\n}\n\n// Segment II\ny = 2;\nif (x > 0) {\n  y = 1;\n}\n\n// Segment III\ny = 1;\nif (x <= 0) {\n  y = 2;\n}",
+"opts": [
+"I and II only",
+"I and III only",
+"II and III only",
+"I, II, and III"
+],
+"a": 3,
+"exp": "All three give y = 1 when x > 0 and y = 2 otherwise. II sets a default of 2 and overrides it with 1 when x > 0. III sets a default of 1 and overrides it with 2 when x <= 0 — the exact opposite of x > 0.",
+"codeOpts": false,
+"fixed": true
+},
+{
+"id": 55,
+"s": 2,
+"q": "y starts at 0 before each segment. Which segments always produce the same final value of y?",
+"code": "// Segment I\nif (x > 5) { y = 1; }\nif (x > 10) { y = 2; }\n\n// Segment II\nif (x > 10) { y = 2; }\nelse if (x > 5) { y = 1; }\n\n// Segment III\nif (x > 5) { y = 1; }\nelse if (x > 10) { y = 2; }",
+"opts": [
+"I and II only",
+"I and III only",
+"II and III only",
+"I, II, and III"
+],
+"a": 0,
+"exp": "Test x = 12. I: y = 1, then the second if also runs → 2. II: x > 10 → 2. III: x > 5 → 1, and the else-if is skipped → 1. Test x = 7: all three give 1. Test x = 3: all give 0. So only I and II match. In III, the x > 10 branch can never run.",
+"codeOpts": false,
+"fixed": true
+},
+{
+"id": 56,
+"s": 2,
+"q": "What is displayed?",
+"code": "let hasKey = true;\nlet doorLocked = true;\nlet alarmOn = false;\nlet canEnter1 = hasKey && !alarmOn || !doorLocked;\nalarmOn = true;\nlet canEnter2 = hasKey && !alarmOn || !doorLocked;\nconsole.log(canEnter1 + \" \" + canEnter2);",
+"opts": [
+"false false",
+"true true",
+"false true",
+"true false"
+],
+"a": 3,
+"exp": "canEnter1 = (true && true) || false = true. After alarmOn becomes true: (true && false) || false = false. Each Boolean expression is computed when its line runs, using the values at that moment.",
+"codeOpts": false,
+"fixed": false
+},
+{
+"id": 57,
+"s": 2,
+"q": "Which expression is equivalent to !(x >= 10 && x <= 20)?",
+"code": "",
+"opts": [
+"x < 10 || x > 20",
+"x <= 10 || x >= 20",
+"x > 10 && x < 20",
+"x < 10 && x > 20"
+],
+"a": 0,
+"exp": "\"Not between 10 and 20 inclusive\" means below 10 OR above 20. De Morgan turns && into ||, and each comparison flips: >= 10 becomes < 10, and <= 20 becomes > 20. The && version can never be true, since no number is below 10 and above 20.",
+"codeOpts": true,
+"fixed": false
+},
+{
+"id": 58,
+"s": 2,
+"q": "p and q are Boolean variables. For how many of the 4 possible combinations of p and q is this expression true?",
+"code": "(p || q) && !(p && q)",
+"opts": [
+"1",
+"2",
+"4",
+"3"
+],
+"a": 1,
+"exp": "Check all four. p = T, q = T: (T) && !(T) = false. T, F: T && T = true. F, T: true. F, F: F && T = false. It's true when exactly one is true (\"exclusive or\"): 2 cases.",
+"codeOpts": false,
+"fixed": false
+},
+{
+"id": 59,
+"s": 2,
+"q": "What is displayed?",
+"code": "let speed = 72;\nlet fine = 0;\nif (speed > 55) {\n  fine = 50;\n  if (speed > 70) {\n    fine = fine + (speed - 70) * 10;\n  }\n  if (speed > 90) {\n    fine = fine * 2;\n  }\n}\nconsole.log(fine);",
+"opts": [
+"50",
+"140",
+"220",
+"70"
+],
+"a": 3,
+"exp": "72 > 55 → fine = 50. 72 > 70 → 50 + 2 × 10 = 70. 72 > 90 is false. '220' uses (72 − 55) instead of (72 − 70), and '140' doubles when it shouldn't.",
+"codeOpts": false,
+"fixed": false
+},
+{
+"id": 60,
+"s": 2,
+"q": "What is displayed?",
+"code": "let n = 30;\nif (n % 3 === 0) {\n  console.log(\"Fizz\");\n} else if (n % 5 === 0) {\n  console.log(\"Buzz\");\n} else if (n % 15 === 0) {\n  console.log(\"FizzBuzz\");\n} else {\n  console.log(n);\n}",
+"opts": [
+"Fizz Buzz FizzBuzz",
+"Buzz",
+"Fizz",
+"FizzBuzz"
+],
+"a": 2,
+"exp": "30 % 3 === 0 is true, so Fizz prints and the chain stops. The FizzBuzz branch is unreachable for multiples of 3 or 5, so the most specific condition (% 15) must be checked first.",
+"codeOpts": false,
+"fixed": false
+},
+{
+"id": 61,
+"s": 2,
+"q": "What is displayed?",
+"code": "let x = 4;\nif (x < 5) {\n  x = x + 3;\n}\nif (x > 5) {\n  x = x * 2;\n}\nif (x === 14) {\n  x = 0;\n}\nconsole.log(x);",
+"opts": [
+"4",
+"0",
+"14",
+"7"
+],
+"a": 1,
+"exp": "Each if checks the CURRENT value of x. 4 < 5 → x = 7. 7 > 5 → x = 14. 14 === 14 → x = 0. Earlier branches change what later conditions see.",
+"codeOpts": false,
+"fixed": false
+},
+{
+"id": 62,
+"s": 2,
+"q": "What is displayed?",
+"code": "let x = 4;\nif (x < 5) {\n  x = x + 3;\n} else if (x > 5) {\n  x = x * 2;\n} else {\n  x = 0;\n}\nconsole.log(x);",
+"opts": [
+"0",
+"14",
+"4",
+"7"
+],
+"a": 3,
+"exp": "4 < 5 → x = 7, and the rest of the chain is skipped. Even though x is now 7 (> 5), the else-if is not re-checked. Only one branch of a chain runs.",
+"codeOpts": false,
+"fixed": false
+},
+{
+"id": 63,
+"s": 2,
+"q": "Which value of n makes this expression FALSE?",
+"code": "(n > 3 && n < 8) || n === 10",
+"opts": [
+"7",
+"10",
+"3",
+"4"
+],
+"a": 2,
+"exp": "n = 3: 3 > 3 is false, so the && part is false, and 3 === 10 is false → false. 4 and 7 make the && part true. 10 makes the right side true.",
+"codeOpts": false,
+"fixed": false
+},
+{
+"id": 64,
+"s": 2,
+"q": "Which condition is true exactly when n is a three-digit positive integer?",
+"code": "",
+"opts": [
+"n / 100 >= 1",
+"n >= 100 && n <= 999",
+"n >= 100 || n <= 999",
+"n > 100 && n < 999"
+],
+"a": 1,
+"exp": "Three-digit numbers run from 100 to 999 inclusive, so both bounds need && with >= and <=. The > / < version leaves out 100 and 999. The || version is true for every number. n / 100 >= 1 is also true for 1000 and up.",
+"codeOpts": true,
+"fixed": false
+},
+{
+"id": 65,
+"s": 2,
+"q": "What is displayed?",
+"code": "let user = \"admin\";\nlet pw = \"abc\";\nif (user === \"admin\" && pw.length >= 8) {\n  console.log(\"OK\");\n} else if (user === \"admin\") {\n  console.log(\"Weak\");\n} else {\n  console.log(\"Denied\");\n}",
+"opts": [
+"Denied",
+"OK Weak",
+"OK",
+"Weak"
+],
+"a": 3,
+"exp": "pw.length is 3, so the first condition is true && false = false. The else-if checks user === \"admin\", which is true → Weak.",
+"codeOpts": false,
+"fixed": false
+},
+{
+"id": 66,
+"s": 2,
+"q": "Which code is equivalent to the original?",
+"code": "// Original\nif (!(raining || cold)) {\n  console.log(\"go out\");\n}",
+"opts": [
+"if (!raining && !cold) {\n  console.log(\"go out\");\n}",
+"if (!raining || !cold) {\n  console.log(\"go out\");\n}",
+"if (raining && cold) {\n  console.log(\"go out\");\n}",
+"if (!raining || cold) {\n  console.log(\"go out\");\n}"
+],
+"a": 0,
+"exp": "De Morgan: NOT (A OR B) = NOT A AND NOT B. You go out only if it is not raining AND not cold. With ||, you'd go out when it's raining as long as it isn't cold.",
+"codeOpts": true,
+"fixed": false
+},
+{
+"id": 67,
+"s": 2,
+"q": "What is displayed?",
+"code": "let x = 3;\nif (x > 5)\n  console.log(\"big\");\n  console.log(\"checked\");",
+"opts": [
+"big",
+"Nothing",
+"big checked",
+"checked"
+],
+"a": 3,
+"exp": "Without braces, an if controls only the ONE statement right after it. The indentation is misleading — console.log(\"checked\") is not part of the if and always runs. 3 > 5 is false, so only checked prints. Always use braces.",
+"codeOpts": false,
+"fixed": false
+},
+{
+"id": 68,
+"s": 2,
+"q": "What is displayed?",
+"code": "let a = \"5\";\nlet b = 5;\nif (a === b) {\n  console.log(\"same\");\n} else if (a == b) {\n  console.log(\"loose\");\n} else {\n  console.log(\"different\");\n}",
+"opts": [
+"different",
+"loose",
+"same",
+"same loose"
+],
+"a": 1,
+"exp": "=== checks the value AND the type. \"5\" (a string) and 5 (a number) are different types, so it's false. == converts types before comparing, so \"5\" == 5 is true → loose. That's why === is the safer choice.",
+"codeOpts": false,
+"fixed": false
+},
+{
+"id": 69,
+"s": 2,
+"q": "What is displayed?",
+"code": "let x = 0;\nif (x = 0) {\n  console.log(\"A\");\n} else {\n  console.log(\"B\");\n}",
+"opts": [
+"A",
+"B",
+"A B",
+"An error message"
+],
+"a": 1,
+"exp": "x = 0 is an ASSIGNMENT, not a comparison. It stores 0, and the condition's value is 0, which counts as false. So the else runs → B. The comparison x === 0 would print A.",
+"codeOpts": false,
+"fixed": false
+},
+{
+"id": 70,
+"s": 2,
+"q": "For which value of x does this code display EXACTLY two lines?",
+"code": "if (x > 0) {\n  console.log(\"pos\");\n}\nif (x % 2 === 0) {\n  console.log(\"even\");\n} else if (x > 10) {\n  console.log(\"big\");\n}",
+"opts": [
+"7",
+"12",
+"0",
+"-4"
+],
+"a": 1,
+"exp": "12: pos (12 > 0) and even → 2 lines. 7: pos only, since 7 is odd and not > 10. −4: even only (−4 % 2 is −0, which equals 0). 0: even only, since 0 > 0 is false.",
+"codeOpts": false,
+"fixed": false
+},
+{
+"id": 71,
+"s": 2,
+"q": "Which expression is equivalent to (x > 5 && x > 10) for every number x?",
+"code": "",
+"opts": [
+"x > 5 || x > 10",
+"x > 15",
+"x > 5",
+"x > 10"
+],
+"a": 3,
+"exp": "Both must be true. Any x > 10 is also > 5, so the stricter condition decides: x > 10. Try x = 7: the original is false (7 > 10 fails), but 'x > 5' would be true.",
+"codeOpts": true,
+"fixed": false
+},
+{
+"id": 72,
+"s": 2,
+"q": "Which expression is equivalent to (x > 5 || x > 10) for every number x?",
+"code": "",
+"opts": [
+"x > 15",
+"x > 5",
+"x > 10",
+"x > 5 && x > 10"
+],
+"a": 1,
+"exp": "Either one being true is enough. Any x > 10 is already > 5, so the looser condition decides: x > 5. Try x = 7: the original is true (7 > 5), but 'x > 10' would be false.",
+"codeOpts": true,
+"fixed": false
+},
+{
+"id": 73,
+"s": 2,
+"q": "What is displayed?",
+"code": "let income = 45000;\nlet tax;\nif (income <= 10000) {\n  tax = 0;\n} else if (income <= 40000) {\n  tax = (income - 10000) * 0.1;\n} else {\n  tax = 3000 + (income - 40000) * 0.2;\n}\nconsole.log(tax);",
+"opts": [
+"3500",
+"4000",
+"7000",
+"9000"
+],
+"a": 1,
+"exp": "45000 is not <= 10000 and not <= 40000, so the else runs: 3000 + (5000 × 0.2) = 3000 + 1000 = 4000. '3500' uses the middle bracket's formula; '9000' taxes everything at 20%.",
+"codeOpts": false,
+"fixed": false
+},
+{
+"id": 74,
+"s": 2,
+"q": "Which output can NEVER be produced, no matter what number n holds?",
+"code": "if (n > 10) {\n  console.log(\"A\");\n} else if (n > 20) {\n  console.log(\"B\");\n} else if (n < 0) {\n  console.log(\"C\");\n} else {\n  console.log(\"D\");\n}",
+"opts": [
+"A",
+"B",
+"C",
+"D"
+],
+"a": 1,
+"exp": "Any n > 20 is also > 10, so the first branch (A) always catches it first. B is unreachable. C happens for negative n, and D for 0–10.",
+"codeOpts": false,
+"fixed": true
+},
+{
+"id": 75,
+"s": 2,
+"q": "What is displayed?",
+"code": "let x = 0;\nlet y = 5;\nlet q;\nif (x > 0 && y > 0) {\n  q = 1;\n} else if (x < 0 && y > 0) {\n  q = 2;\n} else if (x < 0 && y < 0) {\n  q = 3;\n} else {\n  q = 4;\n}\nconsole.log(q);",
+"opts": [
+"2",
+"1",
+"4",
+"0"
+],
+"a": 2,
+"exp": "x = 0 is neither > 0 nor < 0, so all three conditions fail and the else assigns 4. Boundary values like 0 often fall into the catch-all else unexpectedly.",
+"codeOpts": false,
+"fixed": false
+},
+{
+"id": 76,
+"s": 2,
+"q": "What is displayed?",
+"code": "let a = true;\nlet b = false;\nconsole.log(!(a && b) + \" \" + (!a || !b) + \" \" + (!a && !b));",
+"opts": [
+"true false false",
+"true true true",
+"true true false",
+"false true true"
+],
+"a": 2,
+"exp": "!(true && false) = !false = true. !a || !b = false || true = true — De Morgan says it matches the first. !a && !b = false && true = false — this is NOT equivalent to the first.",
+"codeOpts": false,
+"fixed": false
+},
+{
+"id": 77,
+"s": 2,
+"q": "For which value of n is this condition true?",
+"code": "n % 4 === 0 && n % 6 !== 0",
+"opts": [
+"6",
+"12",
+"24",
+"8"
+],
+"a": 3,
+"exp": "8: 8 % 4 = 0 ✓ and 8 % 6 = 2, which is not 0 ✓ → true. 12 and 24 are divisible by both 4 and 6, so the second part fails. 6 % 4 = 2, so the first part fails.",
+"codeOpts": false,
+"fixed": false
+},
+{
+"id": 78,
+"s": 2,
+"q": "Goal: display \"teen\" for ages 13 through 19, inclusive. Which replacement for Line 1 fixes the error?",
+"code": "if (age > 13 || age < 19) {   // Line 1\n  console.log(\"teen\");\n}",
+"opts": [
+"if (age >= 13 || age <= 19) {",
+"if (age > 13 && age < 19) {",
+"if (age > 12 || age < 20) {",
+"if (age >= 13 && age <= 19) {"
+],
+"a": 3,
+"exp": "There are two bugs: || makes the condition true for EVERY age, and > / < leave out 13 and 19. You need && together with >= and <=. 'age > 13 && age < 19' fixes the || but still leaves out 13 and 19.",
+"codeOpts": true,
+"fixed": false
+},
+{
+"id": 79,
+"s": 2,
+"q": "What is displayed?",
+"code": "let s = 0;\nlet x = 6;\nif (x > 3) {\n  s = s + x;\n  x = x - 4;\n}\nif (x > 3) {\n  s = s + x;\n}\nif (x < 3) {\n  s = s * 10;\n}\nconsole.log(s);",
+"opts": [
+"8",
+"80",
+"60",
+"6"
+],
+"a": 2,
+"exp": "First if: s = 6, x = 2. Second if: 2 > 3 is false, so it's skipped. Third if: 2 < 3 → s = 60. '8' assumes the second if adds the new x; '6' forgets the third if.",
+"codeOpts": false,
+"fixed": false
+},
+{
+"id": 80,
+"s": 3,
+"q": "Which values can this expression produce?",
+"code": "floor(random(3, 8))",
+"opts": [
+"3, 4, 5, 6, 7",
+"3, 4, 5, 6, 7, 8",
+"4, 5, 6, 7, 8",
+"4, 5, 6, 7"
+],
+"a": 0,
+"exp": "random(3, 8) returns a decimal from 3 up to, but not including, 8, like 7.999. floor rounds down, so the results are 3 through 7. 8 is never reached.",
+"codeOpts": false,
+"fixed": false
+},
+{
+"id": 81,
+"s": 3,
+"q": "Which expression produces the same possible values, with the same probabilities, as floor(random(1, 7))?",
+"code": "",
+"opts": [
+"floor(random(7))",
+"floor(random(6)) + 1",
+"round(random(1, 6))",
+"floor(random(1, 6))"
+],
+"a": 1,
+"exp": "floor(random(1, 7)) gives 1–6, each equally likely. floor(random(6)) gives 0–5 equally, and + 1 shifts that to 1–6. round(random(1, 6)) also gives 1–6, but 1 and 6 are only half as likely. floor(random(7)) gives 0–6, and floor(random(1, 6)) never gives 6.",
+"codeOpts": true,
+"fixed": false
+},
+{
+"id": 82,
+"s": 3,
+"q": "What is the probability that r equals 1?",
+"code": "let r = round(random(1, 6));",
+"opts": [
+"0%",
+"10%",
+"About 16.7% (1 in 6)",
+"20%"
+],
+"a": 1,
+"exp": "random(1, 6) is a decimal in [1, 6), a range of length 5. round gives 1 only for values in [1, 1.5), a length of 0.5. 0.5 / 5 = 10%. Middle values like 3 come from [2.5, 3.5), a length of 1 = 20%. That's why round(random(…)) is not a fair die.",
+"codeOpts": false,
+"fixed": false
+},
+{
+"id": 83,
+"s": 3,
+"q": "Which value could be stored in x?",
+"code": "let x = random(5);",
+"opts": [
+"4.73",
+"5.2",
+"-0.5",
+"5"
+],
+"a": 0,
+"exp": "random(5) returns a decimal from 0 up to, but not including, 5. 4.73 is in that range. 5 itself is excluded, and 5.2 and −0.5 are outside the range.",
+"codeOpts": false,
+"fixed": false
+},
+{
+"id": 84,
+"s": 3,
+"q": "What is the probability that x is greater than 10 after this code runs?",
+"code": "let r = floor(random(10));\nlet x;\nif (r < 3) {\n  x = 5;\n} else if (r < 7) {\n  x = 15;\n} else {\n  x = 25;\n}",
+"opts": [
+"60%",
+"40%",
+"30%",
+"70%"
+],
+"a": 3,
+"exp": "r is a whole number 0–9, with 10 equally likely values. r = 0–2 gives x = 5. r = 3–6 gives 15, and r = 7–9 gives 25. x > 10 happens for r = 3–9, which is 7 values: 7/10 = 70%. '40%' counts only the 15 branch.",
+"codeOpts": false,
+"fixed": false
+},
+{
+"id": 85,
+"s": 3,
+"q": "What is the probability that \"win\" is displayed?",
+"code": "let a = floor(random(2));\nlet b = floor(random(2));\nif (a === 1 && b === 1) {\n  console.log(\"win\");\n}",
+"opts": [
+"50%",
+"25%",
+"33%",
+"75%"
+],
+"a": 1,
+"exp": "Each of a and b is 0 or 1 with a 50% chance each. There are 4 equally likely pairs: (0,0), (0,1), (1,0), (1,1). Only (1,1) wins → 1/4 = 25%. '33%' wrongly treats the outcomes as \"zero, one, or two 1s\", which are not equally likely.",
+"codeOpts": false,
+"fixed": false
+},
+{
+"id": 86,
+"s": 3,
+"q": "What is the probability that \"bonus\" is displayed?",
+"code": "let a = floor(random(2));\nlet b = floor(random(2));\nif (a === 1 || b === 1) {\n  console.log(\"bonus\");\n}",
+"opts": [
+"75%",
+"25%",
+"50%",
+"100%"
+],
+"a": 0,
+"exp": "Of the 4 equally likely pairs (0,0), (0,1), (1,0), (1,1), only (0,0) fails the ||. So 3/4 = 75%.",
+"codeOpts": false,
+"fixed": false
+},
+{
+"id": 87,
+"s": 3,
+"q": "In p5.js, random() can also pick one item from a list. What is the probability that c is \"red\"?",
+"code": "let colors = [\"red\", \"green\", \"blue\", \"red\"];\nlet c = random(colors);",
+"opts": [
+"33%",
+"100%",
+"50%",
+"25%"
+],
+"a": 2,
+"exp": "random(list) picks one ITEM, with every position equally likely. There are 4 positions and 2 hold \"red\", so 2/4 = 50%. '33%' counts only the 3 different colors.",
+"codeOpts": false,
+"fixed": false
+},
+{
+"id": 88,
+"s": 3,
+"q": "Which values can pick hold?",
+"code": "let pick = random([\"A\", \"B\", \"C\"]);",
+"opts": [
+"\"A\", \"B\", or \"C\"",
+"Any decimal from 0 up to 3",
+"0, 1, or 2",
+"Only \"A\" or \"C\""
+],
+"a": 0,
+"exp": "When random() is given a list, it returns an ITEM from the list, not an index or a decimal. Each of \"A\", \"B\", and \"C\" is equally likely.",
+"codeOpts": false,
+"fixed": false
+},
+{
+"id": 89,
+"s": 3,
+"q": "Which values can this expression produce?",
+"code": "floor(random(-3, 3))",
+"opts": [
+"-3, -2, -1, 0, 1, 2",
+"-2, -1, 0, 1, 2, 3",
+"-3 through 3",
+"-2 through 2"
+],
+"a": 0,
+"exp": "random(−3, 3) returns a decimal in [−3, 3). floor rounds DOWN, so −2.4 becomes −3 and 2.9 becomes 2. That gives the six values −3 to 2. 3 is never reached.",
+"codeOpts": false,
+"fixed": false
+},
+{
+"id": 90,
+"s": 3,
+"q": "Two dice are simulated. What is the probability that total equals 7?",
+"code": "let d1 = floor(random(1, 7));\nlet d2 = floor(random(1, 7));\nlet total = d1 + d2;",
+"opts": [
+"1/12",
+"1/11",
+"1/6",
+"1/36"
+],
+"a": 2,
+"exp": "There are 6 × 6 = 36 equally likely pairs. Six of them sum to 7: (1,6), (2,5), (3,4), (4,3), (5,2), (6,1). 6/36 = 1/6. '1/11' wrongly treats the 11 possible totals (2–12) as equally likely.",
+"codeOpts": false,
+"fixed": false
+},
+{
+"id": 91,
+"s": 3,
+"q": "Which values can x hold after this code runs?",
+"code": "let x = floor(random(4));\nx = x * 2 + 1;",
+"opts": [
+"1, 3, 5, 7, 9",
+"0, 2, 4, 6",
+"1, 3, 5, 7",
+"1 through 9"
+],
+"a": 2,
+"exp": "floor(random(4)) gives 0, 1, 2, or 3. Then ×2 + 1 gives 1, 3, 5, 7. 9 would need x = 4, which is impossible.",
+"codeOpts": false,
+"fixed": false
+},
+{
+"id": 92,
+"s": 3,
+"q": "Which expression produces an even integer from 2 to 10, inclusive, with each value equally likely?",
+"code": "",
+"opts": [
+"floor(random(1, 5)) * 2",
+"floor(random(1, 6)) * 2",
+"floor(random(2, 11))",
+"floor(random(5)) * 2"
+],
+"a": 1,
+"exp": "floor(random(1, 6)) gives 1–5. ×2 gives 2, 4, 6, 8, 10. floor(random(2, 11)) includes odd numbers. floor(random(1, 5)) * 2 stops at 8. floor(random(5)) * 2 gives 0–8.",
+"codeOpts": true,
+"fixed": false
+},
+{
+"id": 93,
+"s": 3,
+"q": "Which statement about the final value of count is true?",
+"code": "let count = 0;\nfor (let i = 0; i < 100; i++) {\n  if (random(1) < 0.25) {\n    count++;\n  }\n}",
+"opts": [
+"It is usually close to 25, but it can vary from run to run",
+"It is exactly 25 every time",
+"It is exactly 100",
+"It is usually close to 75"
+],
+"a": 0,
+"exp": "Each of the 100 passes has a 25% chance of adding 1, so about 25 is expected. Random results vary, though — 22 or 29 are both possible. Probability describes the long run, not a guaranteed exact count.",
+"codeOpts": false,
+"fixed": false
+},
+{
+"id": 94,
+"s": 3,
+"q": "Which statement about this code is true?",
+"code": "let rolls = 0;\nlet r = 0;\nwhile (r !== 6) {\n  r = floor(random(1, 7));\n  rolls++;\n}",
+"opts": [
+"rolls is at least 1 and could be any positive whole number",
+"rolls is always exactly 6",
+"The loop never ends because random never produces 6",
+"The loop never runs because r starts at 0"
+],
+"a": 0,
+"exp": "r starts at 0, which is not 6, so the loop runs at least once. floor(random(1, 7)) can produce 6, so the loop eventually ends. But there's no upper limit on how many rolls it takes.",
+"codeOpts": false,
+"fixed": false
+},
+{
+"id": 95,
+"s": 3,
+"q": "This line is supposed to simulate a six-sided die. Which value can it NEVER produce?",
+"code": "let die = floor(random(1, 6));",
+"opts": [
+"1",
+"3",
+"5",
+"6"
+],
+"a": 3,
+"exp": "random(1, 6) returns a decimal from 1 up to, but not including, 6. floor gives 1–5. A fair die needs floor(random(1, 7)).",
+"codeOpts": false,
+"fixed": true
+},
+{
+"id": 96,
+"s": 3,
+"q": "What is the probability that \"b\" is displayed?",
+"code": "let r = random(100);\nif (r < 20) {\n  console.log(\"a\");\n} else if (r < 50) {\n  console.log(\"b\");\n} else {\n  console.log(\"c\");\n}",
+"opts": [
+"20%",
+"50%",
+"30%",
+"70%"
+],
+"a": 2,
+"exp": "\"b\" runs when r is from 20 up to 50, because values under 20 were already caught by the first branch. That's 30 out of 100 → 30%. '50%' forgets that the else-if only gets the values the first branch didn't take.",
+"codeOpts": false,
+"fixed": false
+},
+{
+"id": 97,
+"s": 3,
+"q": "What is the probability that this condition is true?",
+"code": "floor(random(10)) % 3 === 0",
+"opts": [
+"30%",
+"33%",
+"10%",
+"40%"
+],
+"a": 3,
+"exp": "floor(random(10)) gives 0–9, 10 equally likely values. The multiples of 3 are 0, 3, 6, 9 — four values (don't forget 0). 4/10 = 40%.",
+"codeOpts": false,
+"fixed": false
+},
+{
+"id": 98,
+"s": 3,
+"q": "What is the probability that x is greater than 10?",
+"code": "let x = 5 + floor(random(3)) * 10;",
+"opts": [
+"2/3",
+"1/2",
+"3/4",
+"1/3"
+],
+"a": 0,
+"exp": "floor(random(3)) gives 0, 1, or 2, each equally likely. So x is 5, 15, or 25. Two of the three are greater than 10 → 2/3.",
+"codeOpts": false,
+"fixed": false
+},
+{
+"id": 99,
+"s": 3,
+"q": "What is displayed?",
+"code": "let total = 0;\nlet count = 0;\nfor (let i = 1; i <= 10; i += 3) {\n  total += i;\n  count++;\n}\nconsole.log(total + \" \" + count);",
+"opts": [
+"12 3",
+"22 3",
+"22 4",
+"35 4"
+],
+"a": 2,
+"exp": "i takes the values 1, 4, 7, 10. The loop runs again at 10, since 10 <= 10, and stops at 13. total = 1 + 4 + 7 + 10 = 22, and count = 4. '12 3' stops before 10 (an off-by-one error).",
+"codeOpts": false,
+"fixed": false
+},
+{
+"id": 100,
+"s": 3,
+"q": "What is displayed?",
+"code": "let x = 1;\nlet y = 20;\nwhile (x < y) {\n  x *= 2;\n  y -= 3;\n}\nconsole.log(x + \" \" + y);",
+"opts": [
+"8 11",
+"16 11",
+"32 5",
+"16 8"
+],
+"a": 3,
+"exp": "Pass 1: x = 2, y = 17. Pass 2: 4, 14. Pass 3: 8, 11. Pass 4: 16, 8. Now 16 < 8 is false, so the loop stops. '8 11' stops one pass early; '16 11' updates only x on the last pass.",
+"codeOpts": false,
+"fixed": false
+},
+{
+"id": 101,
+"s": 3,
+"q": "What is displayed?",
+"code": "let n = 10;\nlet s = 0;\nwhile (n < 5) {\n  s += n;\n  n++;\n}\nconsole.log(s + \" \" + n);",
+"opts": [
+"0 10",
+"Nothing — it is an infinite loop",
+"10 11",
+"0 5"
+],
+"a": 0,
+"exp": "The condition is checked BEFORE the first pass. 10 < 5 is false, so the body runs 0 times. s stays 0 and n stays 10.",
+"codeOpts": false,
+"fixed": false
+},
+{
+"id": 102,
+"s": 3,
+"q": "Which loop is an INFINITE loop?",
+"code": "",
+"opts": [
+"for (let i = 0; i !== 10; i += 2) {\n}",
+"let i = 0;\nwhile (i < 10) {\n  i += 3;\n}",
+"let i = 10;\nwhile (i !== 0) {\n  i -= 3;\n}",
+"let i = 1;\nwhile (i < 100) {\n  i *= 2;\n}"
+],
+"a": 2,
+"exp": "In the first option, i goes 10, 7, 4, 1, −2, … and skips over 0 forever, so i !== 0 never becomes false. The others end: 0→12 (12 < 10 is false); 1→128; and 0, 2, 4, 6, 8, 10 hits 10 exactly. Using !== with a step that can jump past the target is risky.",
+"codeOpts": true,
+"fixed": false
+},
+{
+"id": 103,
+"s": 3,
+"q": "How many times does the loop body run?",
+"code": "let count = 0;\nfor (let i = 3; i <= 15; i += 3) {\n  count++;\n}\nconsole.log(count);",
+"opts": [
+"5",
+"4",
+"6",
+"15"
+],
+"a": 0,
+"exp": "i = 3, 6, 9, 12, 15. The body runs at 15 because 15 <= 15, then i = 18 stops it. That's 5 passes. You can also compute (15 − 3) / 3 + 1 = 5.",
+"codeOpts": false,
+"fixed": false
+},
+{
+"id": 104,
+"s": 3,
+"q": "This loop runs 8 times. Which change makes it run exactly 3 MORE times?",
+"code": "for (let i = 0; i < 8; i++) {\n  console.log(i);\n}",
+"opts": [
+"Change i < 8 to i < 11",
+"Change i++ to i += 3",
+"Change i < 8 to i <= 11",
+"Change let i = 0 to let i = 3"
+],
+"a": 0,
+"exp": "i < 11 runs for i = 0–10, which is 11 times. i <= 11 runs 12 times. Starting at 3 runs only 5 times (3–7). i += 3 runs 3 times (0, 3, 6).",
+"codeOpts": false,
+"fixed": false
+},
+{
+"id": 105,
+"s": 3,
+"q": "This loop runs 10 times. Which change makes it run exactly 2 FEWER times?",
+"code": "let k = 1;\nwhile (k <= 20) {\n  k += 2;\n}",
+"opts": [
+"Change k <= 20 to k <= 18",
+"Change k <= 20 to k < 20",
+"Change let k = 1 to let k = 3",
+"Change k <= 20 to k <= 16"
+],
+"a": 3,
+"exp": "Originally k = 1, 3, 5, …, 19 — 10 passes. With k <= 16, k = 1, 3, …, 15 — 8 passes ✓. k < 20 still allows 19, so still 10 passes. k <= 18 allows up to 17 — 9 passes. Starting at 3 gives 3–19 — 9 passes.",
+"codeOpts": false,
+"fixed": false
+},
+{
+"id": 106,
+"s": 3,
+"q": "What is displayed?",
+"code": "let count = 0;\nfor (let i = 1; i <= 4; i++) {\n  for (let j = i; j <= 4; j++) {\n    count++;\n  }\n}\nconsole.log(count);",
+"opts": [
+"10",
+"6",
+"16",
+"4"
+],
+"a": 0,
+"exp": "The inner loop starts at j = i, so it gets shorter each time. i = 1: j = 1–4 (4 passes). i = 2: 3 passes. i = 3: 2. i = 4: 1. Total 4 + 3 + 2 + 1 = 10. '16' assumes the inner loop always runs 4 times.",
+"codeOpts": false,
+"fixed": false
+},
+{
+"id": 107,
+"s": 3,
+"q": "What is displayed? (Each console.log prints one line.)",
+"code": "for (let i = 1; i <= 3; i++) {\n  let line = \"\";\n  for (let j = 1; j <= i; j++) {\n    line += j;\n  }\n  console.log(line);\n}",
+"opts": [
+"1 12 123",
+"123 123 123",
+"1 22 333",
+"1 2 3"
+],
+"a": 0,
+"exp": "line starts empty on each outer pass. i = 1: inner adds 1 → \"1\". i = 2: adds 1, 2 → \"12\". i = 3: \"123\". The digits are joined as strings because line starts as \"\".",
+"codeOpts": false,
+"fixed": false
+},
+{
+"id": 108,
+"s": 3,
+"q": "What is displayed?",
+"code": "let a = 0;\nlet b = 50;\nwhile (a < 20 && b > 30) {\n  a += 4;\n  b -= 5;\n}\nconsole.log(a + \" \" + b);",
+"opts": [
+"16 30",
+"12 35",
+"20 30",
+"20 25"
+],
+"a": 0,
+"exp": "Passes: (4, 45), (8, 40), (12, 35), (16, 30). Now a < 20 is still true, but b > 30 is false (30 > 30 fails), so the && is false and the loop stops. With &&, the loop ends as soon as EITHER condition fails.",
+"codeOpts": false,
+"fixed": false
+},
+{
+"id": 109,
+"s": 3,
+"q": "What is displayed?",
+"code": "let x = 0;\nlet y = 0;\nwhile (x < 3 || y < 5) {\n  x++;\n  y += 2;\n}\nconsole.log(x + \" \" + y);",
+"opts": [
+"5 10",
+"3 4",
+"3 6",
+"2 4"
+],
+"a": 2,
+"exp": "Passes: (1, 2), (2, 4), (3, 6). Now x < 3 is false AND y < 5 is false, so the || is false. With ||, the loop keeps going until BOTH conditions fail. After pass 2, y < 5 was still true.",
+"codeOpts": false,
+"fixed": false
+},
+{
+"id": 110,
+"s": 3,
+"q": "Goal: add up the even numbers from 2 to 20, inclusive (the result should be 110). Which replacement for Line 2 fixes the error?",
+"code": "let sum = 0;\nfor (let i = 2; i < 20; i += 2) {   // Line 2\n  sum += i;\n}",
+"opts": [
+"for (let i = 0; i < 20; i += 2) {",
+"for (let i = 2; i <= 20; i++) {",
+"for (let i = 2; i <= 20; i += 2) {",
+"for (let i = 1; i <= 20; i += 2) {"
+],
+"a": 2,
+"exp": "The original stops before 20 and gives 90, an off-by-one error. <= 20 includes 20: 2 + 4 + … + 20 = 110. Starting at 0 still skips 20. i++ adds every number (209). Starting at 1 adds the odd numbers.",
+"codeOpts": true,
+"fixed": false
+},
+{
+"id": 111,
+"s": 3,
+"q": "Goal: display 10, 9, 8, …, 1. Instead the code displays 9 down to 0. Which change fixes it?",
+"code": "let n = 10;\nwhile (n > 0) {\n  n--;\n  console.log(n);\n}",
+"opts": [
+"Change let n = 10 to let n = 11",
+"Change n-- to n++",
+"Swap the two statements inside the loop",
+"Change n > 0 to n >= 0"
+],
+"a": 2,
+"exp": "The value is decreased BEFORE it's printed. Printing first, then decreasing, gives 10 … 1. n >= 0 prints 9 to −1. Starting at 11 prints 10 to 0 (one extra). n++ creates an infinite loop.",
+"codeOpts": false,
+"fixed": false
+},
+{
+"id": 112,
+"s": 3,
+"q": "What is displayed?",
+"code": "let a = 1;\nlet b = 1;\nlet c;\nfor (let i = 0; i < 5; i++) {\n  c = a + b;\n  a = b;\n  b = c;\n}\nconsole.log(a + \" \" + b);",
+"opts": [
+"8 21",
+"5 8",
+"8 13",
+"13 21"
+],
+"a": 2,
+"exp": "Track (a, b) after each pass: (1, 2), (2, 3), (3, 5), (5, 8), (8, 13). This builds the Fibonacci sequence. '5 8' stops one pass early.",
+"codeOpts": false,
+"fixed": false
+},
+{
+"id": 113,
+"s": 3,
+"q": "What is displayed?",
+"code": "let found = false;\nlet i = 0;\nwhile (i < 10 && !found) {\n  if (i * i > 20) {\n    found = true;\n  }\n  i++;\n}\nconsole.log(i);",
+"opts": [
+"5",
+"10",
+"4",
+"6"
+],
+"a": 3,
+"exp": "i = 0–4: i × i is at most 16. At i = 5, 25 > 20 → found = true, but i++ still runs → 6. Then !found is false, so the loop stops. '5' forgets that i++ runs after found is set.",
+"codeOpts": false,
+"fixed": false
+},
+{
+"id": 114,
+"s": 3,
+"q": "What is displayed?",
+"code": "let n = 3052;\nlet digits = 0;\nlet sum = 0;\nwhile (n > 0) {\n  sum += n % 10;\n  n = floor(n / 10);\n  digits++;\n}\nconsole.log(digits + \" \" + sum);",
+"opts": [
+"4 10",
+"4 7",
+"3 10",
+"4 3052"
+],
+"a": 0,
+"exp": "Pass 1: +2, n = 305. Pass 2: +5, n = 30. Pass 3: +0, n = 3. Pass 4: +3, n = 0. That's 4 digits, sum 10. The 0 digit still counts as a pass.",
+"codeOpts": false,
+"fixed": false
+},
+{
+"id": 115,
+"s": 3,
+"q": "What is displayed?",
+"code": "let i;\nfor (i = 0; i < 17; i += 5) {\n}\nconsole.log(i);",
+"opts": [
+"16",
+"20",
+"15",
+"17"
+],
+"a": 1,
+"exp": "i = 0, 5, 10, 15 all pass the test. Then i becomes 20, and 20 < 17 fails. i was declared OUTSIDE the loop, so it keeps that final value: 20. The last value inside the body was 15.",
+"codeOpts": false,
+"fixed": false
+},
+{
+"id": 116,
+"s": 3,
+"q": "What is displayed?",
+"code": "let count = 0;\nfor (let r = 0; r < 4; r++) {\n  for (let c = 0; c < 4; c++) {\n    if (r !== c) {\n      count++;\n    }\n  }\n}\nconsole.log(count);",
+"opts": [
+"4",
+"12",
+"16",
+"8"
+],
+"a": 1,
+"exp": "The nested loops make 4 × 4 = 16 (r, c) pairs. Exactly 4 have r === c: (0,0), (1,1), (2,2), (3,3). 16 − 4 = 12.",
+"codeOpts": false,
+"fixed": false
+},
+{
+"id": 117,
+"s": 3,
+"q": "What is displayed? (Each console.log prints one line.)",
+"code": "let i = 1;\nwhile (i <= 12) {\n  if (i % 3 === 0 && i % 2 !== 0) {\n    console.log(i);\n  }\n  i++;\n}",
+"opts": [
+"3 6 9 12",
+"3 9",
+"6 12",
+"9"
+],
+"a": 1,
+"exp": "The condition needs a multiple of 3 that is also odd. The multiples of 3 up to 12 are 3, 6, 9, 12. The odd ones are 3 and 9.",
+"codeOpts": false,
+"fixed": false
+},
+{
+"id": 118,
+"s": 3,
+"q": "What is displayed?",
+"code": "let x = 100;\nlet steps = 0;\nwhile (x > 1) {\n  x = floor(x / 2);\n  steps++;\n}\nconsole.log(steps);",
+"opts": [
+"50",
+"6",
+"5",
+"7"
+],
+"a": 1,
+"exp": "100 → 50 → 25 → 12 → 6 → 3 → 1. That's 6 halvings. Then 1 > 1 is false.",
+"codeOpts": false,
+"fixed": false
+},
+{
+"id": 119,
+"s": 3,
+"q": "What is displayed?",
+"code": "let total = 0;\nfor (let i = 1; i <= 3; i++) {\n  for (let j = 1; j <= 3; j++) {\n    if (i + j === 4) {\n      total += i * j;\n    }\n  }\n}\nconsole.log(total);",
+"opts": [
+"4",
+"12",
+"3",
+"10"
+],
+"a": 3,
+"exp": "Pairs with i + j = 4: (1,3) → 3, (2,2) → 4, (3,1) → 3. Total 3 + 4 + 3 = 10. Remember that (1,3) and (3,1) are both visited.",
+"codeOpts": false,
+"fixed": false
+},
+{
+"id": 120,
+"s": 4,
+"q": "What is displayed? (Each console.log prints one line.)",
+"code": "function a() {\n  console.log(\"A\");\n  b();\n  console.log(\"C\");\n}\nfunction b() {\n  console.log(\"B\");\n}\nconsole.log(\"start\");\na();\nconsole.log(\"end\");",
+"opts": [
+"start B A C end",
+"A B C start end",
+"start A C B end",
+"start A B C end"
+],
+"a": 3,
+"exp": "Lines run in order. When a() is called, it prints A, then calls b(), which prints B and RETURNS to the line after the call in a(), which prints C. Then control returns to the main program, which prints end.",
+"codeOpts": false,
+"fixed": false
+},
+{
+"id": 121,
+"s": 4,
+"q": "What is displayed?",
+"code": "let count = 0;\nfunction bump() {\n  count += 2;\n}\nfunction reset() {\n  count = 1;\n}\nbump();\nbump();\nreset();\nbump();\nconsole.log(count);",
+"opts": [
+"7",
+"3",
+"1",
+"5"
+],
+"a": 1,
+"exp": "bump → 2. bump → 4. reset sets count to 1. bump → 3. reset replaces the value; it does not add.",
+"codeOpts": false,
+"fixed": false
+},
+{
+"id": 122,
+"s": 4,
+"q": "What is displayed?",
+"code": "let x = 3;\nfunction triple() {\n  x = x * 3;\n  return x;\n}\nlet y = triple() + triple();\nconsole.log(y + \" \" + x);",
+"opts": [
+"18 9",
+"36 27",
+"18 27",
+"36 9"
+],
+"a": 1,
+"exp": "The first call sets x = 9 and returns 9. The second call uses the NEW x: x = 27, and it returns 27. y = 9 + 27 = 36. '18 9' assumes both calls return 9, but each call changes the global x.",
+"codeOpts": false,
+"fixed": false
+},
+{
+"id": 123,
+"s": 4,
+"q": "What is displayed? (Each console.log prints one line.)",
+"code": "function check() {\n  console.log(\"one\");\n  return 5;\n  console.log(\"two\");\n}\nlet r = check();\nconsole.log(r);",
+"opts": [
+"one two",
+"one 5",
+"one two 5",
+"5"
+],
+"a": 1,
+"exp": "return ends the procedure immediately. \"two\" is never printed. The returned 5 is stored in r and then printed.",
+"codeOpts": false,
+"fixed": false
+},
+{
+"id": 124,
+"s": 4,
+"q": "What is displayed?",
+"code": "let score = 10;\nfunction update() {\n  let score = 50;\n  score += 5;\n}\nupdate();\nconsole.log(score);",
+"opts": [
+"50",
+"15",
+"55",
+"10"
+],
+"a": 3,
+"exp": "Inside update(), let score creates a NEW local variable that hides the global one. Changing it (to 55) has no effect outside. The global score is still 10.",
+"codeOpts": false,
+"fixed": false
+},
+{
+"id": 125,
+"s": 4,
+"q": "What is displayed?",
+"code": "let total = 4;\nfunction addTen() {\n  total = total + 10;\n}\nlet result = addTen();\nconsole.log(total + \" \" + result);",
+"opts": [
+"14 undefined",
+"4 undefined",
+"14 10",
+"14 14"
+],
+"a": 0,
+"exp": "addTen() changes the global total to 14, but it has no return statement. A procedure without a return gives back undefined, so result is undefined.",
+"codeOpts": false,
+"fixed": false
+},
+{
+"id": 126,
+"s": 4,
+"q": "What is displayed?",
+"code": "let calls = 0;\nfunction inner() {\n  calls++;\n}\nfunction middle() {\n  inner();\n  inner();\n}\nfunction outer() {\n  middle();\n  inner();\n  middle();\n}\nouter();\nouter();\nconsole.log(calls);",
+"opts": [
+"5",
+"3",
+"10",
+"6"
+],
+"a": 2,
+"exp": "One outer() call makes middle (2 inner calls) + inner (1) + middle (2) = 5 calls to inner(). outer() runs twice → 10.",
+"codeOpts": false,
+"fixed": false
+},
+{
+"id": 127,
+"s": 4,
+"q": "What is displayed?",
+"code": "let n = 1;\nfunction grow() {\n  n = n * 2 + 1;\n}\nfor (let i = 0; i < 3; i++) {\n  grow();\n}\nconsole.log(n);",
+"opts": [
+"31",
+"7",
+"15",
+"9"
+],
+"a": 2,
+"exp": "The loop calls grow() 3 times. n: 1 → 3 → 7 → 15. '7' stops one call early, and '31' does one call too many.",
+"codeOpts": false,
+"fixed": false
+},
+{
+"id": 128,
+"s": 4,
+"q": "What is displayed? (Each console.log prints one line.)",
+"code": "let temp = 72;\nfunction rating() {\n  if (temp > 80) {\n    return \"hot\";\n  }\n  if (temp > 60) {\n    return \"warm\";\n  }\n  return \"cold\";\n}\nconsole.log(rating());\ntemp = 85;\nconsole.log(rating());",
+"opts": [
+"warm warm",
+"warm cold",
+"hot hot",
+"warm hot"
+],
+"a": 3,
+"exp": "First call: 72 > 80 is false, 72 > 60 is true → return \"warm\". The return ends the procedure, so \"cold\" is not reached. Second call: temp is now 85 → \"hot\". The procedure reads the global's value at the moment it is called.",
+"codeOpts": false,
+"fixed": false
+},
+{
+"id": 129,
+"s": 4,
+"q": "What is displayed?",
+"code": "console.log(getValue());\n\nfunction getValue() {\n  return 7;\n}",
+"opts": [
+"An error saying getValue is not defined",
+"7",
+"undefined",
+"Nothing"
+],
+"a": 1,
+"exp": "In JavaScript, a procedure written with the function keyword can be called from anywhere in the file, even above its definition, because definitions are loaded before the code runs. The call returns 7.",
+"codeOpts": false,
+"fixed": false
+},
+{
+"id": 130,
+"s": 4,
+"q": "What is displayed?",
+"code": "let x = 1;\nfunction change() {\n  x = 100;\n}\nx = x + 1;\nconsole.log(x);",
+"opts": [
+"2",
+"100",
+"1",
+"101"
+],
+"a": 0,
+"exp": "change() is DEFINED but never CALLED, so its body never runs. x = 1 + 1 = 2.",
+"codeOpts": false,
+"fixed": false
+},
+{
+"id": 131,
+"s": 4,
+"q": "What is displayed?",
+"code": "let a = 2;\nlet b = 5;\nfunction swap() {\n  let t = a;\n  a = b;\n  b = t;\n}\nfunction double() {\n  a = a * 2;\n}\ndouble();\nswap();\ndouble();\nconsole.log(a + \" \" + b);",
+"opts": [
+"8 5",
+"4 10",
+"10 5",
+"10 4"
+],
+"a": 3,
+"exp": "double → a = 4. swap → a = 5, b = 4. double → a = 10. The order of the calls matters.",
+"codeOpts": false,
+"fixed": false
+},
+{
+"id": 132,
+"s": 4,
+"q": "What is displayed?",
+"code": "let x = 5;\nfunction plusOne() {\n  return x + 1;\n}\nplusOne();\nplusOne();\nconsole.log(x);",
+"opts": [
+"6",
+"undefined",
+"5",
+"7"
+],
+"a": 2,
+"exp": "plusOne() RETURNS x + 1 but never assigns anything to x, and the returned value is thrown away. x is still 5. Returning a value doesn't change a variable unless you store it.",
+"codeOpts": false,
+"fixed": false
+},
+{
+"id": 133,
+"s": 4,
+"q": "What is displayed?",
+"code": "let x = 5;\nfunction plusOne() {\n  return x + 1;\n}\nx = plusOne();\nx = plusOne();\nconsole.log(x);",
+"opts": [
+"7",
+"5",
+"6",
+"12"
+],
+"a": 0,
+"exp": "This time the returned value is stored. x = 5 + 1 = 6, then x = 6 + 1 = 7.",
+"codeOpts": false,
+"fixed": false
+},
+{
+"id": 134,
+"s": 4,
+"q": "Which statement BEST describes procedural abstraction?",
+"code": "",
+"opts": [
+"A procedure makes a program run faster by skipping lines",
+"A procedure guarantees that a program has no logic errors",
+"A procedure lets a program run without any variables",
+"A procedure lets a programmer use a task by its name without knowing the details of how it works"
+],
+"a": 3,
+"exp": "Abstraction hides detail. Calling resetGame() lets you think about WHAT happens, not HOW. It also reduces repeated code and lets you change the steps in one place. It doesn't make code faster or error-free.",
+"codeOpts": false,
+"fixed": false
+},
+{
+"id": 135,
+"s": 4,
+"q": "Which sequence of calls displays B, A, B (in that order)?",
+"code": "function showA() {\n  console.log(\"A\");\n}\nfunction showB() {\n  console.log(\"B\");\n}\nfunction twice() {\n  showB();\n  showA();\n}",
+"opts": [
+"showB();\ntwice();",
+"showA();\ntwice();",
+"twice();\nshowB();",
+"twice();\ntwice();"
+],
+"a": 2,
+"exp": "twice() prints B, A. Following it with showB() adds B → B A B. showB(); twice(); gives B B A. showA(); twice(); gives A B A. twice(); twice(); gives B A B A.",
+"codeOpts": true,
+"fixed": false
+},
+{
+"id": 136,
+"s": 4,
+"q": "What is displayed? (Each console.log prints one line.)",
+"code": "let n = 4;\nfunction factorial() {\n  let result = 1;\n  for (let i = 2; i <= n; i++) {\n    result *= i;\n  }\n  return result;\n}\nconsole.log(factorial());\nn = 5;\nconsole.log(factorial());",
+"opts": [
+"6 24",
+"24 24",
+"24 2880",
+"24 120"
+],
+"a": 3,
+"exp": "First call: 2 × 3 × 4 = 24. result is local and resets to 1 on every call. Second call with n = 5: 2 × 3 × 4 × 5 = 120. '2880' wrongly assumes result keeps its value 24 from the first call.",
+"codeOpts": false,
+"fixed": false
+},
+{
+"id": 137,
+"s": 4,
+"q": "What is displayed?",
+"code": "let target = 7;\nfunction firstMultiple() {\n  for (let i = 1; i <= 50; i++) {\n    if (i % target === 0 && i > 20) {\n      return i;\n    }\n  }\n  return -1;\n}\nconsole.log(firstMultiple());",
+"opts": [
+"7",
+"21",
+"49",
+"-1"
+],
+"a": 1,
+"exp": "The loop checks 1, 2, 3, … The first i that is a multiple of 7 AND greater than 20 is 21. return exits the procedure, and the loop with it, right away. 49 is the LAST such multiple.",
+"codeOpts": false,
+"fixed": false
+},
+{
+"id": 138,
+"s": 4,
+"q": "What is displayed?",
+"code": "let total = 0;\nfunction addRange() {\n  for (let i = 1; i <= 3; i++) {\n    total += i;\n  }\n}\naddRange();\naddRange();\nconsole.log(total);",
+"opts": [
+"12",
+"6",
+"9",
+"3"
+],
+"a": 0,
+"exp": "Each call adds 1 + 2 + 3 = 6 to the GLOBAL total. Two calls → 12. The global isn't reset between calls.",
+"codeOpts": false,
+"fixed": false
+},
+{
+"id": 139,
+"s": 4,
+"q": "What is displayed?",
+"code": "function counter() {\n  let c = 0;\n  c++;\n  return c;\n}\nconsole.log(counter() + counter() + counter());",
+"opts": [
+"1",
+"123",
+"6",
+"3"
+],
+"a": 3,
+"exp": "c is LOCAL. It's created fresh and set to 0 on every call, so each call returns 1. 1 + 1 + 1 = 3. The values are numbers, so + adds them; it doesn't join them.",
+"codeOpts": false,
+"fixed": false
+},
+{
+"id": 140,
+"s": 4,
+"q": "What is displayed?",
+"code": "let c = 0;\nfunction counter() {\n  c++;\n  return c;\n}\nconsole.log(counter() + counter() + counter());",
+"opts": [
+"3",
+"6",
+"123",
+"1"
+],
+"a": 1,
+"exp": "Now c is GLOBAL, so it keeps its value between calls. The calls return 1, 2, 3. 1 + 2 + 3 = 6. Compare this with a local variable, which would reset each time.",
+"codeOpts": false,
+"fixed": false
+},
+{
+"id": 141,
+"s": 4,
+"q": "x starts at 10 before EACH sequence. What is x after Sequence I, and after Sequence II?",
+"code": "let x = 10;\nfunction half() {\n  x = x / 2;\n}\nfunction addSix() {\n  x = x + 6;\n}\n\n// Sequence I:  half(); addSix();\n// Sequence II: addSix(); half();",
+"opts": [
+"8 and 11",
+"11 and 11",
+"11 and 8",
+"8 and 8"
+],
+"a": 2,
+"exp": "I: 10 / 2 = 5, then 5 + 6 = 11. II: 10 + 6 = 16, then 16 / 2 = 8. The same procedures in a different order give different results.",
+"codeOpts": false,
+"fixed": false
+},
+{
+"id": 142,
+"s": 4,
+"q": "What is displayed? (Each console.log prints one line.)",
+"code": "let age = 16;\nfunction canDrive() {\n  return age >= 17;\n}\nif (canDrive()) {\n  console.log(\"yes\");\n} else {\n  console.log(\"no\");\n}\nage++;\nif (canDrive()) {\n  console.log(\"yes\");\n} else {\n  console.log(\"no\");\n}",
+"opts": [
+"yes yes",
+"no no",
+"yes no",
+"no yes"
+],
+"a": 3,
+"exp": "canDrive() returns a Boolean that the if uses directly. 16 >= 17 is false → no. After age++ (17), 17 >= 17 is true → yes.",
+"codeOpts": false,
+"fixed": false
+},
+{
+"id": 143,
+"s": 4,
+"q": "What is displayed?",
+"code": "let base = 3;\nfunction square() {\n  return base * base;\n}\nfunction sumSquares() {\n  let s = square();\n  base = base + 1;\n  s = s + square();\n  return s;\n}\nconsole.log(sumSquares() + \" \" + base);",
+"opts": [
+"25 4",
+"25 3",
+"16 4",
+"18 4"
+],
+"a": 0,
+"exp": "s = 3 × 3 = 9. base becomes 4. s = 9 + 4 × 4 = 25. After the call, base is still 4. sumSquares() is evaluated before base is read for the output.",
+"codeOpts": false,
+"fixed": false
+},
+{
+"id": 144,
+"s": 4,
+"q": "What is displayed? (Each console.log prints one line.)",
+"code": "function f() {\n  console.log(\"in f\");\n  return 2;\n}\nlet y = f() * f();\nconsole.log(y);",
+"opts": [
+"in f in f 4",
+"4",
+"in f 4",
+"in f 2 in f 2 4"
+],
+"a": 0,
+"exp": "f() is called twice, and each call prints \"in f\" before returning 2. y = 2 × 2 = 4, which prints last. The return values themselves are not printed.",
+"codeOpts": false,
+"fixed": false
+},
+{
+"id": 145,
+"s": 4,
+"q": "What is displayed?",
+"code": "let n = 2;\nfunction next() {\n  n = n + 3;\n  return n;\n}\nconsole.log(next() + n);",
+"opts": [
+"10",
+"8",
+"5",
+"7"
+],
+"a": 0,
+"exp": "Expressions are evaluated left to right. next() runs first: n becomes 5 and it returns 5. Then n is read, and it is now 5. 5 + 5 = 10. '7' assumes n is still 2.",
+"codeOpts": false,
+"fixed": false
+},
+{
+"id": 146,
+"s": 4,
+"q": "What is displayed?",
+"code": "let n = 2;\nfunction next() {\n  n = n + 3;\n  return n;\n}\nconsole.log(n + next());",
+"opts": [
+"7",
+"10",
+"5",
+"4"
+],
+"a": 0,
+"exp": "Left to right: n is read FIRST (2). Then next() runs, changing n to 5 and returning 5. 2 + 5 = 7. Swapping the order of the operands changes the result when a procedure changes a global.",
+"codeOpts": false,
+"fixed": false
+},
+{
+"id": 147,
+"s": 4,
+"q": "What is displayed?",
+"code": "let lives = 0;\nlet score = 900;\nfunction resetGame() {\n  let lives = 3;\n  score = 0;\n}\nresetGame();\nconsole.log(lives + \" \" + score);",
+"opts": [
+"0 0",
+"3 900",
+"0 900",
+"3 0"
+],
+"a": 0,
+"exp": "let lives inside the procedure creates a LOCAL variable, so the global lives stays 0. score has no let, so it changes the GLOBAL score to 0.",
+"codeOpts": false,
+"fixed": false
+},
+{
+"id": 148,
+"s": 4,
+"q": "In the previous resetGame() procedure, which change makes the global lives become 3 when resetGame() is called?",
+"code": "let lives = 0;\nlet score = 900;\nfunction resetGame() {\n  let lives = 3;\n  score = 0;\n}",
+"opts": [
+"Add return lives; at the end of resetGame()",
+"Change let lives = 3; to lives = 3;",
+"Change let lives = 0; to let lives = 3; inside the procedure",
+"Rename the global variable to Lives"
+],
+"a": 1,
+"exp": "Removing let makes the line assign to the existing GLOBAL variable instead of creating a new local one. Returning lives without storing the result changes nothing. Renaming creates a mismatch.",
+"codeOpts": false,
+"fixed": false
+},
+{
+"id": 149,
+"s": 4,
+"q": "What is displayed?",
+"code": "let fuel = 10;\nfunction hasFuel() {\n  return fuel > 0;\n}\nlet trips = 0;\nwhile (hasFuel()) {\n  fuel -= 3;\n  trips++;\n}\nconsole.log(trips + \" \" + fuel);",
+"opts": [
+"4 -2",
+"3 -2",
+"4 1",
+"3 1"
+],
+"a": 0,
+"exp": "The condition calls hasFuel() before every pass. fuel: 10 → 7 → 4 → 1 → −2, with a trip each time (4 trips). hasFuel() then returns false. At fuel = 1, the condition 1 > 0 is still true, which is why a 4th trip happens.",
+"codeOpts": false,
+"fixed": false
+},
+{
+"id": 150,
+"s": 4,
+"q": "What is displayed?",
+"code": "let x = 1;\nfunction update() {\n  if (x > 0) {\n    return x;\n  }\n  x = 100;\n  return x;\n}\nconsole.log(update() + \" \" + x);",
+"opts": [
+"1 100",
+"1 1",
+"101 100",
+"100 100"
+],
+"a": 1,
+"exp": "x > 0 is true, so update() returns 1 right away. The line x = 100 never runs, and x stays 1.",
+"codeOpts": false,
+"fixed": false
+},
+{
+"id": 151,
+"s": 4,
+"q": "What is displayed?",
+"code": "let hits = 0;\nfunction hit() {\n  hits++;\n  return hits % 3 === 0;\n}\nlet i = 0;\nwhile (!hit()) {\n  i++;\n}\nconsole.log(i + \" \" + hits);",
+"opts": [
+"2 2",
+"2 3",
+"3 2",
+"3 3"
+],
+"a": 1,
+"exp": "Each check calls hit(). Call 1: hits = 1, returns false, so !false runs the body → i = 1. Call 2: hits = 2 → i = 2. Call 3: hits = 3, returns true, !true stops the loop. The procedure runs 3 times, but the body runs only twice.",
+"codeOpts": false,
+"fixed": false
+},
+{
+"id": 152,
+"s": 4,
+"q": "What is displayed?",
+"code": "let n = 0;\nfunction inc() {\n  n++;\n  return true;\n}\nif (inc() || inc()) { }\nif (inc() && inc()) { }\nconsole.log(n);",
+"opts": [
+"1",
+"2",
+"4",
+"3"
+],
+"a": 3,
+"exp": "Short-circuit: with ||, the first inc() returns true, so the second is skipped (n = 1). With &&, the first returns true, so the second MUST run to decide (n = 3). Not every procedure in a condition is guaranteed to be called.",
+"codeOpts": false,
+"fixed": false
+},
+{
+"id": 153,
+"s": 4,
+"q": "A procedure named resetBoard has been defined. Which line CALLS it?",
+"code": "",
+"opts": [
+"return resetBoard;",
+"resetBoard;",
+"function resetBoard() { }",
+"resetBoard();"
+],
+"a": 3,
+"exp": "A call is the name followed by parentheses. 'function resetBoard() { }' DEFINES a procedure. 'resetBoard;' only names it without running it. 'return resetBoard;' hands back the procedure itself without running it.",
+"codeOpts": true,
+"fixed": false
+},
+{
+"id": 154,
+"s": 4,
+"q": "What is displayed?",
+"code": "let money = 100;\nfunction buy() {\n  if (money >= 30) {\n    money -= 30;\n    return true;\n  }\n  return false;\n}\nlet bought = 0;\nfor (let i = 0; i < 5; i++) {\n  if (buy()) {\n    bought++;\n  }\n}\nconsole.log(bought + \" \" + money);",
+"opts": [
+"3 70",
+"5 -50",
+"4 10",
+"3 10"
+],
+"a": 3,
+"exp": "Calls 1–3 succeed: money goes 70, 40, 10. Calls 4 and 5 fail because 10 >= 30 is false, so money is unchanged. bought = 3, money = 10. Each call both changes money AND returns a result.",
+"codeOpts": false,
+"fixed": false
+},
+{
+"id": 155,
+"s": 4,
+"q": "What is displayed?",
+"code": "let greeting = \"Hi\";\nfunction greet() {\n  return greeting + \"!\";\n}\ngreeting = \"Hello\";\nconsole.log(greet());",
+"opts": [
+"Hello!",
+"greeting!",
+"Hi",
+"Hi!"
+],
+"a": 0,
+"exp": "The procedure reads greeting when it is CALLED, not when it is defined. By then greeting is \"Hello\".",
+"codeOpts": false,
+"fixed": false
+},
+{
+"id": 156,
+"s": 4,
+"q": "x and y are global variables. This code repeats the same two lines three times. Which replacement gives the same final x and y?",
+"code": "x += 2;\ny *= 2;\nx += 2;\ny *= 2;\nx += 2;\ny *= 2;",
+"opts": [
+"function step() {\n  x += 2;\n  y *= 2;\n}",
+"function step() {\n  x += 6;\n  y *= 6;\n}\nstep();",
+"function step() {\n  x += 2;\n  y *= 2;\n}\nstep();",
+"function step() {\n  x += 2;\n  y *= 2;\n}\nstep();\nstep();\nstep();"
+],
+"a": 3,
+"exp": "The procedure holds one round of the repeated steps and is called 3 times. Calling it once does only one round. y *= 6 is not the same as doubling 3 times, which multiplies by 8. Defining it without calling it does nothing.",
+"codeOpts": true,
+"fixed": false
+},
+{
+"id": 157,
+"s": 4,
+"q": "What is displayed? (Each console.log prints one line.)",
+"code": "function getNum() {\n  console.log(5);\n}\nlet v = getNum();\nconsole.log(v + 1);",
+"opts": [
+"5 6",
+"5 NaN",
+"6",
+"NaN"
+],
+"a": 1,
+"exp": "getNum() PRINTS 5 but doesn't RETURN it, so v is undefined. undefined + 1 is NaN (Not a Number). Printing a value is not the same as returning it.",
+"codeOpts": false,
+"fixed": false
+},
+{
+"id": 158,
+"s": 4,
+"q": "What is displayed?",
+"code": "function a() {\n  return b() + 1;\n}\nfunction b() {\n  return c() * 2;\n}\nfunction c() {\n  return 3;\n}\nconsole.log(a());",
+"opts": [
+"8",
+"9",
+"7",
+"6"
+],
+"a": 2,
+"exp": "a() needs b(), which needs c(). c() returns 3 → b() returns 3 × 2 = 6 → a() returns 6 + 1 = 7. '8' computes (3 + 1) × 2, which is the wrong order.",
+"codeOpts": false,
+"fixed": false
+},
+{
+"id": 159,
+"s": 4,
+"q": "What is displayed?",
+"code": "let stock = 5;\nfunction sell() {\n  if (stock > 0) {\n    stock--;\n    return \"sold\";\n  }\n  return \"out\";\n}\nlet msg = \"\";\nfor (let i = 0; i < 7; i++) {\n  msg = sell();\n}\nconsole.log(msg + \" \" + stock);",
+"opts": [
+"out 0",
+"out -2",
+"sold -2",
+"sold 0"
+],
+"a": 0,
+"exp": "Calls 1–5 sell one each, and stock goes 5 → 0. Calls 6 and 7 find stock > 0 false, so they return \"out\" WITHOUT changing stock. msg keeps only the LAST returned value, \"out\". The if keeps stock from going negative.",
+"codeOpts": false,
+"fixed": false
+},
+{
+"id": 160,
+"s": 5,
+"q": "This algorithm is meant to find the largest of a, b, and c. What is displayed?",
+"code": "let a = -5;\nlet b = -2;\nlet c = -9;\nlet max = 0;\nif (a > max) { max = a; }\nif (b > max) { max = b; }\nif (c > max) { max = c; }\nconsole.log(max);",
+"opts": [
+"-5",
+"-2",
+"0",
+"-9"
+],
+"a": 2,
+"exp": "max starts at 0, and none of the negative values is greater than 0, so max is never replaced. The algorithm prints 0, which is not even one of the inputs. Starting with a made-up value fails when every input is below it.",
+"codeOpts": false,
+"fixed": false
+},
+{
+"id": 161,
+"s": 5,
+"q": "Which change makes the previous algorithm (max starting at 0) correct for ANY values of a, b, and c?",
+"code": "let max = 0;\nif (a > max) { max = a; }\nif (b > max) { max = b; }\nif (c > max) { max = c; }",
+"opts": [
+"Change let max = 0; to let max = -1;",
+"Change let max = 0; to let max = a;",
+"Change let max = 0; to let max = 100;",
+"Change every > to >="
+],
+"a": 1,
+"exp": "Starting max at one of the actual inputs guarantees the answer is a real value. Then each comparison keeps the larger one. −1 still fails if all values are below −1. >= changes nothing for this bug. 100 makes it fail for most inputs.",
+"codeOpts": false,
+"fixed": false
+},
+{
+"id": 162,
+"s": 5,
+"q": "What is displayed?",
+"code": "let n = 1230;\nlet rev = 0;\nwhile (n > 0) {\n  rev = rev * 10 + n % 10;\n  n = floor(n / 10);\n}\nconsole.log(rev);",
+"opts": [
+"0321",
+"3210",
+"321",
+"1230"
+],
+"a": 2,
+"exp": "rev: 0×10 + 0 = 0 (n = 123). 0×10 + 3 = 3 (n = 12). 32 (n = 1). 321 (n = 0). A leading zero doesn't exist in a number, so the result is 321, not 0321.",
+"codeOpts": false,
+"fixed": false
+},
+{
+"id": 163,
+"s": 5,
+"q": "What is displayed?",
+"code": "let a = 48;\nlet b = 18;\nwhile (b !== 0) {\n  let t = b;\n  b = a % b;\n  a = t;\n}\nconsole.log(a);",
+"opts": [
+"2",
+"18",
+"3",
+"6"
+],
+"a": 3,
+"exp": "This is Euclid's greatest common divisor algorithm. (48, 18) → (18, 48 % 18 = 12) → (12, 6) → (6, 0). The loop stops when b is 0, and a = 6. 6 is the largest number that divides both 48 and 18.",
+"codeOpts": false,
+"fixed": false
+},
+{
+"id": 164,
+"s": 5,
+"q": "This algorithm decides whether n is prime. For which value of n does it give the WRONG answer?",
+"code": "let isPrime = true;\nfor (let d = 2; d < n / 2; d++) {\n  if (n % d === 0) {\n    isPrime = false;\n  }\n}",
+"opts": [
+"7",
+"15",
+"4",
+"9"
+],
+"a": 2,
+"exp": "For n = 4, the loop needs d < 2, so it runs 0 times and isPrime stays true — but 4 is not prime. For 9 it tests d = 2, 3, 4 and finds 3. For 15 it finds 3. For 7 it correctly reports prime. Testing small edge cases exposes the bug; the fix is d <= n / 2.",
+"codeOpts": false,
+"fixed": false
+},
+{
+"id": 165,
+"s": 5,
+"q": "What is displayed?",
+"code": "let n = 12;\nlet count = 0;\nfor (let d = 1; d <= n; d++) {\n  if (n % d === 0) {\n    count++;\n  }\n}\nconsole.log(count);",
+"opts": [
+"6",
+"12",
+"5",
+"4"
+],
+"a": 0,
+"exp": "The algorithm counts the divisors of 12: 1, 2, 3, 4, 6, 12 → 6. '4' forgets that 1 and 12 themselves divide 12.",
+"codeOpts": false,
+"fixed": false
+},
+{
+"id": 166,
+"s": 5,
+"q": "N is a positive integer. Which algorithms always produce the same final value of count? (Each segment runs separately with count starting at 0.)",
+"code": "// Algorithm I\nfor (let i = 1; i <= N; i++) {\n  if (i % 2 === 0) { count++; }\n}\n\n// Algorithm II\ncount = floor(N / 2);\n\n// Algorithm III\nfor (let i = 2; i <= N; i += 2) {\n  count++;\n}",
+"opts": [
+"I and II only",
+"I and III only",
+"II and III only",
+"I, II, and III"
+],
+"a": 3,
+"exp": "All three count the even numbers from 1 to N, which is floor(N / 2). Check N = 7: I counts 2, 4, 6 → 3. II gives floor(3.5) = 3. III runs for i = 2, 4, 6 → 3. Very different algorithms can solve the same problem.",
+"codeOpts": false,
+"fixed": true
+},
+{
+"id": 167,
+"s": 5,
+"q": "Goal: neg should be true if AT LEAST ONE of a, b, c is negative. Which code meets the goal?",
+"code": "",
+"opts": [
+"let neg = false;\nif (a < 0) { neg = true; }\nif (b < 0) { neg = true; } else { neg = false; }\nif (c < 0) { neg = true; }",
+"let neg = a < 0 || b < 0 || c < 0;",
+"let neg = !(a > 0 || b > 0 || c > 0);",
+"let neg = a < 0 && b < 0 && c < 0;"
+],
+"a": 1,
+"exp": "\"At least one\" means OR. The && version needs all three to be negative. The third version resets neg to false whenever b >= 0, which erases a negative a. The last one is true only when NONE is positive.",
+"codeOpts": true,
+"fixed": false
+},
+{
+"id": 168,
+"s": 5,
+"q": "What is displayed?",
+"code": "let n = 9875;\nwhile (n >= 10) {\n  let s = 0;\n  while (n > 0) {\n    s += n % 10;\n    n = floor(n / 10);\n  }\n  n = s;\n}\nconsole.log(n);",
+"opts": [
+"29",
+"9",
+"11",
+"2"
+],
+"a": 3,
+"exp": "The outer loop repeats a digit sum until one digit remains. 9 + 8 + 7 + 5 = 29. 29 is >= 10, so repeat: 2 + 9 = 11. Repeat again: 1 + 1 = 2. '29' stops after one round.",
+"codeOpts": false,
+"fixed": false
+},
+{
+"id": 169,
+"s": 5,
+"q": "What is displayed?",
+"code": "let min = 1000;\nfor (let i = 1; i <= 6; i++) {\n  let v = (i * 7) % 10;\n  if (v < min) {\n    min = v;\n  }\n}\nconsole.log(min);",
+"opts": [
+"2",
+"0",
+"7",
+"1"
+],
+"a": 3,
+"exp": "v for i = 1–6: 7, 14 % 10 = 4, 21 % 10 = 1, 8, 5, 2. The smallest is 1. 0 would need i × 7 to end in 0, which doesn't happen for i = 1–6.",
+"codeOpts": false,
+"fixed": false
+},
+{
+"id": 170,
+"s": 5,
+"q": "What is displayed?",
+"code": "let best = -1;\nlet bestI = 0;\nfor (let i = 1; i <= 6; i++) {\n  let v = (i * 7) % 10;\n  if (v >= best) {\n    best = v;\n    bestI = i;\n  }\n}\nconsole.log(best + \" \" + bestI);",
+"opts": [
+"8 6",
+"7 1",
+"2 6",
+"8 4"
+],
+"a": 3,
+"exp": "v = 7, 4, 1, 8, 5, 2. best is updated at i = 1 (7) and i = 4 (8). Nothing after that is >= 8. The algorithm tracks both the largest value AND where it occurred.",
+"codeOpts": false,
+"fixed": false
+},
+{
+"id": 171,
+"s": 5,
+"q": "A program should accept n only if (n >= 1 && n <= 100). Which set of test inputs is BEST for checking this condition?",
+"code": "",
+"opts": [
+"50",
+"0, 1, 50, 100, 101",
+"1, 2, 3, 4, 5",
+"-100, 1000"
+],
+"a": 1,
+"exp": "Good tests check just outside, at, and inside each boundary. 0 and 101 should be rejected, 1 and 100 accepted, and 50 is typical. The other sets never test the edges, where errors like < vs <= hide.",
+"codeOpts": false,
+"fixed": false
+},
+{
+"id": 172,
+"s": 5,
+"q": "What is displayed?",
+"code": "let a = 7;\nlet b = 2;\nlet c = 5;\nlet t;\nif (a > b) { t = a; a = b; b = t; }\nif (b > c) { t = b; b = c; c = t; }\nif (a > b) { t = a; a = b; b = t; }\nconsole.log(a + \" \" + b + \" \" + c);",
+"opts": [
+"2 5 7",
+"2 7 5",
+"5 2 7",
+"7 5 2"
+],
+"a": 0,
+"exp": "Swap 1: 7 > 2 → a = 2, b = 7. Swap 2: 7 > 5 → b = 5, c = 7. Check 3: 2 > 5 is false. Result: sorted, 2 5 7. '2 7 5' stops after the first swap.",
+"codeOpts": false,
+"fixed": false
+},
+{
+"id": 173,
+"s": 5,
+"q": "If the THIRD if statement is removed from the previous sorting algorithm, which starting values will NOT end up in increasing order?",
+"code": "if (a > b) { t = a; a = b; b = t; }\nif (b > c) { t = b; b = c; c = t; }\n// third if removed",
+"opts": [
+"a = 7, b = 2, c = 5",
+"a = 1, b = 2, c = 3",
+"a = 5, b = 7, c = 2",
+"a = 3, b = 1, c = 2"
+],
+"a": 2,
+"exp": "For 5, 7, 2: the first if does nothing. The second swaps b and c → 5, 2, 7. Now a > b, but no step fixes it. The other inputs sort correctly in two steps: 7, 2, 5 → 2, 7, 5 → 2, 5, 7 and 3, 1, 2 → 1, 3, 2 → 1, 2, 3.",
+"codeOpts": false,
+"fixed": false
+},
+{
+"id": 174,
+"s": 5,
+"q": "What is displayed?",
+"code": "let n = 6;\nlet steps = 0;\nwhile (n !== 1) {\n  if (n % 2 === 0) {\n    n = n / 2;\n  } else {\n    n = 3 * n + 1;\n  }\n  steps++;\n}\nconsole.log(steps);",
+"opts": [
+"8",
+"7",
+"16",
+"9"
+],
+"a": 0,
+"exp": "6 → 3 → 10 → 5 → 16 → 8 → 4 → 2 → 1. Count the arrows: 8 steps. '9' counts the numbers instead of the steps.",
+"codeOpts": false,
+"fixed": false
+},
+{
+"id": 175,
+"s": 5,
+"q": "What is displayed?",
+"code": "let n = 13;\nlet bits = \"\";\nwhile (n > 0) {\n  bits = (n % 2) + bits;\n  n = floor(n / 2);\n}\nconsole.log(bits);",
+"opts": [
+"1101",
+"1011",
+"13",
+"110"
+],
+"a": 0,
+"exp": "13 % 2 = 1 (n = 6). 6 % 2 = 0 (n = 3). 3 % 2 = 1 (n = 1). 1 % 2 = 1 (n = 0). Each new bit goes on the FRONT: \"1\" → \"01\" → \"101\" → \"1101\". Adding to the end would give 1011, the reverse.",
+"codeOpts": false,
+"fixed": false
+},
+{
+"id": 176,
+"s": 5,
+"q": "What is displayed?",
+"code": "let count = 0;\nfor (let a = 1; a <= 5; a++) {\n  for (let b = a; b <= 5; b++) {\n    if (a + b === 6) {\n      count++;\n    }\n  }\n}\nconsole.log(count);",
+"opts": [
+"6",
+"2",
+"3",
+"5"
+],
+"a": 2,
+"exp": "Because b starts at a, each pair is checked only once (a <= b). Pairs summing to 6: (1,5), (2,4), (3,3) → 3. '5' would count (4,2) and (5,1) as well, but b never goes below a.",
+"codeOpts": false,
+"fixed": false
+},
+{
+"id": 177,
+"s": 5,
+"q": "Algorithm B checks possible divisors d = 2, 3, 4, … while d * d <= n. How many values of d does it check when n = 101?",
+"code": "let d = 2;\nwhile (d * d <= n) {\n  // check whether n % d === 0\n  d++;\n}",
+"opts": [
+"9",
+"50",
+"10",
+"99"
+],
+"a": 0,
+"exp": "d * d <= 101 holds for d = 2 through 10 (10 × 10 = 100), and fails at 11 (121). d = 2–10 is 9 values. Checking every d from 2 to 100 would take 99 checks. Smarter algorithms can do the same job in far fewer steps.",
+"codeOpts": false,
+"fixed": false
+},
+{
+"id": 178,
+"s": 5,
+"q": "What is displayed?",
+"code": "let balance = 50;\nfor (let month = 1; month <= 3; month++) {\n  balance = balance * 2;\n  balance = balance - 30;\n}\nconsole.log(balance);",
+"opts": [
+"190",
+"110",
+"130",
+"400"
+],
+"a": 0,
+"exp": "Month 1: 100 − 30 = 70. Month 2: 140 − 30 = 110. Month 3: 220 − 30 = 190. '400' forgets the subtraction; '110' stops after month 2.",
+"codeOpts": false,
+"fixed": false
+},
+{
+"id": 179,
+"s": 5,
+"q": "What does this algorithm compute, and what is displayed when n starts at 2026?",
+"code": "let n = 2026;\nlet result = 0;\nwhile (n > 0) {\n  if (n % 10 > result) {\n    result = n % 10;\n  }\n  n = floor(n / 10);\n}\nconsole.log(result);",
+"opts": [
+"The last digit; 6",
+"The number of digits; 4",
+"The sum of the digits; 10",
+"The largest digit; 6"
+],
+"a": 3,
+"exp": "Each pass looks at one digit (n % 10) and keeps it if it's bigger than any digit seen so far. The digits are 6, 2, 0, 2 → the largest is 6. The output happens to match the last digit here, but the algorithm keeps the maximum, not the last digit. Try n = 2620 to see the difference.",
+"codeOpts": false,
+"fixed": false
+},
+{
+"id": 180,
+"s": 5,
+"q": "This algorithm prints true if n reads the same forward and backward. For which starting value of n does it print FALSE?",
+"code": "let orig = n;\nlet rev = 0;\nwhile (n > 0) {\n  rev = rev * 10 + n % 10;\n  n = floor(n / 10);\n}\nconsole.log(rev === orig);",
+"opts": [
+"1210",
+"1221",
+"7",
+"4554"
+],
+"a": 0,
+"exp": "1210 reversed: 0 → 1 → 12 → 121. rev = 121, which is not 1210 → false. 1221 and 4554 reverse to themselves. 7 is a single digit, so it reverses to itself.",
+"codeOpts": false,
+"fixed": false
+},
+{
+"id": 181,
+"s": 5,
+"q": "A class average is 80 over 4 scores. Goal: update avg after adding newScore = 90 (the correct new average is 82). Which code segment works?",
+"code": "",
+"opts": [
+"avg = (avg + newScore) / 2;",
+"count = count + 1;\nlet total = avg * count;\ntotal = total + newScore;\navg = total / count;",
+"let total = avg * count;\ntotal = total + newScore;\ncount = count + 1;\navg = total / count;",
+"let total = avg * count;\ncount = count + 1;\navg = total / count;\ntotal = total + newScore;"
+],
+"a": 2,
+"exp": "Rebuild the old total (80 × 4 = 320), add 90 (410), then divide by the new count, 5 → 82. Increasing count first makes the old total 400, giving 98. Dividing before adding gives 64. Averaging the average with one score gives 85 — that treats the new score as half of all the data.",
+"codeOpts": true,
+"fixed": false
+},
+{
+"id": 182,
+"s": 5,
+"q": "What is displayed?",
+"code": "let count = 0;\nfor (let i = 1; i <= 30; i++) {\n  if (i % 4 === 0 || i % 6 === 0) {\n    count++;\n  }\n}\nconsole.log(count);",
+"opts": [
+"2",
+"10",
+"7",
+"12"
+],
+"a": 1,
+"exp": "There are 7 multiples of 4 up to 30 (4–28) and 5 multiples of 6 (6–30). 12 and 24 are multiples of both, and || counts each number only once: 7 + 5 − 2 = 10. '12' double-counts 12 and 24.",
+"codeOpts": false,
+"fixed": false
+},
+{
+"id": 183,
+"s": 5,
+"q": "Three side lengths a, b, c can form a triangle only if every pair of sides adds up to more than the third side. Which expression tests this?",
+"code": "",
+"opts": [
+"a + b > c || a + c > b || b + c > a",
+"a + b > c && a + c > b && b + c > a",
+"a + b > c",
+"a + b + c > 0"
+],
+"a": 1,
+"exp": "All three conditions must hold, so use &&. With ||, sides 1, 1, 10 pass (1 + 10 > 1) even though they can't form a triangle. Checking only a + b > c misses cases where c is not the longest side.",
+"codeOpts": true,
+"fixed": false
+},
+{
+"id": 184,
+"s": 5,
+"q": "What is displayed?",
+"code": "let n = 101;\nwhile (n % 7 !== 0 || n % 9 !== 0) {\n  n++;\n}\nconsole.log(n);",
+"opts": [
+"108",
+"126",
+"63",
+"105"
+],
+"a": 1,
+"exp": "The loop continues while n is NOT divisible by both 7 and 9 (De Morgan). It stops at the first n >= 101 divisible by 63: 126. 105 is divisible by 7 only, and 108 by 9 only, so the loop keeps going past them.",
+"codeOpts": false,
+"fixed": false
+},
+{
+"id": 185,
+"s": 5,
+"q": "What is displayed?",
+"code": "let n = 48;\nwhile (n % 2 === 0 && n > 1) {\n  n = n / 2;\n}\nconsole.log(n === 1);",
+"opts": [
+"true",
+"An infinite loop",
+"false",
+"3"
+],
+"a": 2,
+"exp": "48 → 24 → 12 → 6 → 3. 3 is odd, so the loop stops. 3 === 1 is false, so 48 is not a power of 2. For n = 32, the loop would reach 1 and print true.",
+"codeOpts": false,
+"fixed": false
+},
+{
+"id": 186,
+"s": 5,
+"q": "Algorithm X adds 1 + 2 + … + n with a loop. Algorithm Y computes n * (n + 1) / 2. Which statement is true for every positive integer n?",
+"code": "",
+"opts": [
+"They give different results",
+"Both give the same result, but Y uses the same number of steps no matter how large n is",
+"Y only works when n is even",
+"X is faster than Y for large n"
+],
+"a": 1,
+"exp": "Y is the closed formula for the same sum, so both give the same result. X's loop takes n passes, while Y takes a fixed few operations. n × (n + 1) is always even (one of two consecutive numbers is even), so Y works for every n.",
+"codeOpts": false,
+"fixed": false
+},
+{
+"id": 187,
+"s": 5,
+"q": "What is displayed?",
+"code": "let n = 73254;\nlet s = 0;\nwhile (n > 0) {\n  let d = n % 10;\n  if (d % 2 === 1) {\n    s += d;\n  }\n  n = floor(n / 10);\n}\nconsole.log(s);",
+"opts": [
+"8",
+"21",
+"15",
+"6"
+],
+"a": 2,
+"exp": "Digits, from the right: 4, 5, 2, 3, 7. The odd ones are 5, 3, 7 → 15. '21' adds every digit, and '6' adds the even ones.",
+"codeOpts": false,
+"fixed": false
+},
+{
+"id": 188,
+"s": 5,
+"q": "What is displayed?",
+"code": "let c = 0;\nfor (let i = 1; i <= 4; i++) {\n  for (let j = 1; j <= 4; j++) {\n    if (i * j > 6) {\n      c++;\n    }\n  }\n}\nconsole.log(c);",
+"opts": [
+"10",
+"3",
+"4",
+"6"
+],
+"a": 3,
+"exp": "Products greater than 6 in a 4 × 4 table: 2×4 = 8, 3×3 = 9, 3×4 = 12, 4×2 = 8, 4×3 = 12, 4×4 = 16 → 6. Remember to count both 2×4 and 4×2.",
+"codeOpts": false,
+"fixed": false
+},
+{
+"id": 189,
+"s": 5,
+"q": "Goal: replace x with its absolute value (distance from 0) without using Math.abs. Which code works for every number x?",
+"code": "",
+"opts": [
+"if (x < 0) {\n  x = -x;\n}",
+"if (x > 0) {\n  x = -x;\n}",
+"if (x < 0) {\n  x = x - x;\n}",
+"x = x * -1;"
+],
+"a": 0,
+"exp": "Only negative values need to change, and negating them makes them positive. x − x makes them 0. Multiplying every x by −1 turns positive numbers negative. The last option negates the positive numbers instead.",
+"codeOpts": true,
+"fixed": false
+},
+{
+"id": 190,
+"s": 5,
+"q": "Goal: add 10 to score, but score must never go above 100. Which code always meets the goal?",
+"code": "",
+"opts": [
+"if (score > 100) {\n  score = 100;\n}\nscore = score + 10;",
+"score = score + 10;\nif (score > 100) {\n  score = 100;\n}",
+"if (score < 100) {\n  score = score + 10;\n}",
+"score = 100;\nscore = score + 10;"
+],
+"a": 1,
+"exp": "Add first, then cap. Capping BEFORE adding lets 100 become 110. Checking score < 100 lets 95 become 105. The last option always gives 110. Order matters: the check has to come after the change it's guarding.",
+"codeOpts": true,
+"fixed": false
+},
+{
+"id": 191,
+"s": 5,
+"q": "What is displayed?",
+"code": "let up = 0;\nlet down = 0;\nlet pos = 0;\nfor (let i = 1; i <= 10; i++) {\n  if (i % 3 === 0) {\n    pos -= 2;\n    down++;\n  } else {\n    pos += 1;\n    up++;\n  }\n}\nconsole.log(up + \" \" + down + \" \" + pos);",
+"opts": [
+"7 3 1",
+"6 4 -2",
+"7 3 -1",
+"7 3 13"
+],
+"a": 0,
+"exp": "The multiples of 3 from 1 to 10 are 3, 6, 9, so down = 3 and pos changes by −6. The other 7 values give up = 7 and +7. pos = 7 − 6 = 1.",
+"codeOpts": false,
+"fixed": false
+},
+{
+"id": 192,
+"s": 5,
+"q": "This algorithm guesses a secret number by halving the range. What is displayed?",
+"code": "let low = 1;\nlet high = 100;\nlet secret = 37;\nlet guess = 0;\nlet guesses = 0;\nwhile (guess !== secret) {\n  guess = floor((low + high) / 2);\n  guesses++;\n  if (guess < secret) {\n    low = guess + 1;\n  } else if (guess > secret) {\n    high = guess - 1;\n  }\n}\nconsole.log(guesses);",
+"opts": [
+"3",
+"6",
+"37",
+"7"
+],
+"a": 0,
+"exp": "Guess 1: floor(101 / 2) = 50 → too high, high = 49. Guess 2: floor(50 / 2) = 25 → too low, low = 26. Guess 3: floor(75 / 2) = 37 → found. 3 guesses.",
+"codeOpts": false,
+"fixed": false
+},
+{
+"id": 193,
+"s": 5,
+"q": "Using the halving guessing algorithm from the previous question, what is the MOST guesses it could ever need for a secret number from 1 to 100?",
+"code": "",
+"opts": [
+"7",
+"50",
+"10",
+"100"
+],
+"a": 0,
+"exp": "Each guess cuts the remaining range roughly in half: 100 → 50 → 25 → 12 → 6 → 3 → 1. That's at most 7 guesses, since 2⁷ = 128 ≥ 100. Guessing 1, 2, 3, … in order could take 100.",
+"codeOpts": false,
+"fixed": false
+},
+{
+"id": 194,
+"s": 5,
+"q": "What is displayed?",
+"code": "let total = 0;\ntotal += 7;\ntotal += 8;\ntotal += 8;\nlet avg = floor(total / 3);\nconsole.log(avg);",
+"opts": [
+"8",
+"7",
+"23",
+"7.67"
+],
+"a": 1,
+"exp": "total = 23. 23 / 3 = 7.67, and floor rounds DOWN to 7. Rounding to the nearest would give 8, but floor never rounds up.",
+"codeOpts": false,
+"fixed": false
+},
+{
+"id": 195,
+"s": 5,
+"q": "What is displayed?",
+"code": "let count = 0;\nfor (let i = 1; i <= 50; i++) {\n  let s = i % 10 + floor(i / 10);\n  if (s === 5) {\n    count++;\n  }\n}\nconsole.log(count);",
+"opts": [
+"6",
+"4",
+"5",
+"10"
+],
+"a": 0,
+"exp": "s is the digit sum of i (i is at most 50, so it has at most 2 digits). Digit sum 5: 5, 14, 23, 32, 41, 50 → 6. Students often miss 50.",
+"codeOpts": false,
+"fixed": false
+},
+{
+"id": 196,
+"s": 5,
+"q": "Positions are numbered 0–4 around a circle. What is displayed?",
+"code": "let pos = 0;\nfor (let step = 1; step <= 7; step++) {\n  pos = (pos + step) % 5;\n}\nconsole.log(pos);",
+"opts": [
+"3",
+"0",
+"1",
+"28"
+],
+"a": 0,
+"exp": "pos after each step: 1, 3, 6 % 5 = 1, 5 % 5 = 0, 5 % 5 = 0, 6 % 5 = 1, 8 % 5 = 3. '28' is 1 + 2 + … + 7 without wrapping, and 28 % 5 = 3 confirms the answer.",
+"codeOpts": false,
+"fixed": false
+},
+{
+"id": 197,
+"s": 5,
+"q": "Goal: count the multiples of 5 from 1 to 50 (the answer should be 10). What does this code display, and why?",
+"code": "let count = 0;\nfor (let i = 0; i <= 50; i++) {\n  if (i % 5 === 0) {\n    count++;\n  }\n}\nconsole.log(count);",
+"opts": [
+"11, because the loop starts at 0 and 0 % 5 === 0",
+"50, because the loop runs 50 times",
+"9, because 50 is not included",
+"10, because the code is correct"
+],
+"a": 0,
+"exp": "i = 0 is checked, and 0 % 5 is 0, so 0 is counted along with 5, 10, …, 50. Starting the loop at 1 fixes it.",
+"codeOpts": false,
+"fixed": false
+},
+{
+"id": 198,
+"s": 5,
+"q": "Which segments leave s equal to the same value? (Each segment runs separately.)",
+"code": "// Segment I\nlet s = 0;\nfor (let i = 1; i <= 10; i++) {\n  if (i % 2 === 0) { s += i; }\n}\n\n// Segment II\nlet s = 0;\nfor (let i = 2; i <= 10; i += 2) {\n  s += i;\n}\n\n// Segment III\nlet s = 0;\nlet i = 0;\nwhile (i < 10) {\n  i += 2;\n  s += i;\n}",
+"opts": [
+"I and II only",
+"I and III only",
+"II and III only",
+"I, II, and III"
+],
+"a": 3,
+"exp": "All three add 2 + 4 + 6 + 8 + 10 = 30. In III, i increases BEFORE it is added, so it adds 2, 4, 6, 8, 10. It stops when i = 10, after 10 has been added.",
+"codeOpts": false,
+"fixed": true
+},
+{
+"id": 199,
+"s": 5,
+"q": "What is displayed?",
+"code": "let line = \"\";\nfor (let i = 1; i <= 5; i++) {\n  if (i % 2 === 1) {\n    line += \"*\";\n  } else {\n    line += \"-\";\n  }\n}\nconsole.log(line);",
+"opts": [
+"-*-*-",
+"*-*-",
+"*****",
+"*-*-*"
+],
+"a": 3,
+"exp": "i = 1 (odd) *, 2 -, 3 *, 4 -, 5 *. There are 5 characters and the pattern starts with * because i starts at 1. '*-*-' is one short — an off-by-one error.",
+"codeOpts": false,
+"fixed": false
+}
+];
+
+/* =========================================================
+   STATE
+   ========================================================= */
+const state = {
+  selected: new Set(SECTIONS.map(s => s.id)),
+  timer: 0,
+  order: "shuffle",
+  size: 10,
+  seen: new Set(),
+  queue: [],
+  idx: 0,
+  score: 0,
+  streak: 0,
+  bestStreak: 0,
+  results: [],
+  locked: false,
+  shown: null,
+  tStart: 0,
+  tick: null
+};
+
+const $ = id => document.getElementById(id);
+const SHAPES = ["▲", "◆", "●", "■"];
+
+function esc(s) {
+  return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+}
+function inlineCode(s) {
+  return esc(s).replace(/`([^`]+)`/g, "<code>$1</code>");
+}
+function codeBlock(src) {
+  // escape, then dim comments
+  const lines = esc(src).split("\n").map(line => {
+    const i = line.indexOf("//");
+    return i === -1 ? line : line.slice(0, i) + '<span class="cm">' + line.slice(i) + "</span>";
+  });
+  return '<pre class="code">' + lines.join("\n") + "</pre>";
+}
+function shuffle(arr) {
+  const a = arr.slice();
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+function secOf(id) { return SECTIONS.find(s => s.id === id); }
+function show(id) {
+  document.querySelectorAll(".screen").forEach(el => el.classList.remove("active"));
+  $(id).classList.add("active");
+  window.scrollTo(0, 0);
+}
+
+/* =========================================================
+   HOME
+   ========================================================= */
+function buildHome() {
+  const grid = $("secGrid");
+  grid.innerHTML = "";
+  SECTIONS.forEach(sec => {
+    const n = BANK.filter(q => q.s === sec.id).length;
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "sec-card" + (state.selected.has(sec.id) ? " on" : "");
+    btn.style.setProperty("--sec-color", sec.color);
+    btn.setAttribute("aria-pressed", state.selected.has(sec.id));
+    btn.innerHTML =
+      '<span class="badge" style="background:' + sec.color + '">' + sec.code + "</span>" +
+      '<span class="meta"><strong>' + sec.name + "</strong><span>" + n + " questions</span></span>" +
+      '<span class="check">' + (state.selected.has(sec.id) ? "✓" : "") + "</span>";
+    btn.onclick = () => {
+      if (state.selected.has(sec.id)) state.selected.delete(sec.id);
+      else state.selected.add(sec.id);
+      buildHome();
+    };
+    grid.appendChild(btn);
+  });
+  const pool = BANK.filter(q => state.selected.has(q.s));
+  const total = pool.length;
+  const fresh = pool.filter(q => !state.seen.has(q.id)).length;
+  const per = state.size === 0 ? total : Math.min(state.size, total);
+  $("countNote").textContent = total
+    ? per + " questions per round · " + fresh + " of " + total + " not yet seen this session"
+    : "Choose at least one section to start.";
+  $("startBtn").disabled = total === 0;
+  $("toggleAll").textContent = state.selected.size === SECTIONS.length ? "Select none" : "Select all";
+}
+
+$("toggleAll").onclick = () => {
+  if (state.selected.size === SECTIONS.length) state.selected.clear();
+  else SECTIONS.forEach(s => state.selected.add(s.id));
+  buildHome();
+};
+document.querySelectorAll("#timerSeg button").forEach(b => {
+  b.onclick = () => {
+    document.querySelectorAll("#timerSeg button").forEach(x => x.classList.remove("on"));
+    b.classList.add("on");
+    state.timer = Number(b.dataset.t);
+  };
+});
+document.querySelectorAll("#orderSeg button").forEach(b => {
+  b.onclick = () => {
+    document.querySelectorAll("#orderSeg button").forEach(x => x.classList.remove("on"));
+    b.classList.add("on");
+    state.order = b.dataset.o;
+  };
+});
+document.querySelectorAll("#sizeSeg button").forEach(b => {
+  b.onclick = () => {
+    document.querySelectorAll("#sizeSeg button").forEach(x => x.classList.remove("on"));
+    b.classList.add("on");
+    state.size = Number(b.dataset.n);
+    buildHome();
+  };
+});
+$("startBtn").onclick = () => {
+  const pool = BANK.filter(q => state.selected.has(q.s));
+  // unseen questions first, so repeated rounds keep giving new ones
+  const fresh = shuffle(pool.filter(q => !state.seen.has(q.id)));
+  const old = shuffle(pool.filter(q => state.seen.has(q.id)));
+  const n = state.size === 0 ? pool.length : Math.min(state.size, pool.length);
+  const round = fresh.concat(old).slice(0, n);
+  round.forEach(q => state.seen.add(q.id));
+  startGame(round);
+};
+
+/* =========================================================
+   GAME
+   ========================================================= */
+function startGame(questions) {
+  state.queue = state.order === "shuffle" ? shuffle(questions) : questions.slice().sort((a, b) => a.s - b.s);
+  state.idx = 0;
+  state.score = 0;
+  state.streak = 0;
+  state.bestStreak = 0;
+  state.results = [];
+  $("scoreVal").textContent = "0";
+  show("game");
+  renderQuestion();
+}
+
+function renderQuestion() {
+  const q = state.queue[state.idx];
+  const sec = secOf(q.s);
+  state.locked = false;
+  document.documentElement.style.setProperty("--sec-color", sec.color);
+
+  $("secChip").textContent = sec.code + " " + sec.name;
+  $("secChip").style.background = sec.color;
+  $("qCount").textContent = (state.idx + 1) + " / " + state.queue.length;
+  $("streakChip").textContent = "🔥 " + state.streak;
+  $("progressFill").style.width = (state.idx / state.queue.length * 100) + "%";
+
+  $("qText").innerHTML = inlineCode(q.q);
+  $("qCode").innerHTML = q.code ? codeBlock(q.code) : "";
+
+  // choose display order
+  const order = q.fixed ? [0, 1, 2, 3] : shuffle([0, 1, 2, 3]);
+  state.shown = order;
+
+  const box = $("answers");
+  box.innerHTML = "";
+  order.forEach((orig, pos) => {
+    const b = document.createElement("button");
+    b.type = "button";
+    b.className = "ans c" + pos;
+    const label = q.codeOpts
+      ? '<pre class="mono">' + esc(q.opts[orig]) + "</pre>"
+      : inlineCode(q.opts[orig]);
+    b.innerHTML =
+      '<span class="shape" aria-hidden="true">' + SHAPES[pos] + "</span>" +
+      '<span class="label">' + label + "</span>" +
+      '<span class="mark"></span>' +
+      '<span class="key" aria-hidden="true">' + (pos + 1) + "</span>";
+    b.onclick = () => choose(pos);
+    box.appendChild(b);
+  });
+
+  $("feedback").classList.remove("show");
+
+  // timer
+  clearInterval(state.tick);
+  if (state.timer > 0) {
+    $("timerBar").hidden = false;
+    $("timerBar").classList.remove("low");
+    $("timerFill").style.width = "100%";
+    state.tStart = Date.now();
+    state.tick = setInterval(() => {
+      const left = state.timer - (Date.now() - state.tStart) / 1000;
+      const pct = Math.max(0, left / state.timer * 100);
+      $("timerFill").style.width = pct + "%";
+      $("timerBar").classList.toggle("low", left <= 5);
+      if (left <= 0) { clearInterval(state.tick); choose(-1); }
+    }, 100);
+  } else {
+    $("timerBar").hidden = true;
+  }
+}
+
+function choose(pos) {
+  if (state.locked) return;
+  state.locked = true;
+  clearInterval(state.tick);
+
+  const q = state.queue[state.idx];
+  const correctPos = state.shown.indexOf(q.a);
+  const isRight = pos === correctPos;
+
+  let pts = 0;
+  if (isRight) {
+    state.streak++;
+    state.bestStreak = Math.max(state.bestStreak, state.streak);
+    if (state.timer > 0) {
+      const left = Math.max(0, state.timer - (Date.now() - state.tStart) / 1000);
+      pts = Math.round(500 + 500 * (left / state.timer));
+    } else {
+      pts = 1000;
+    }
+    pts += Math.min(state.streak - 1, 5) * 100;
+    state.score += pts;
+  } else {
+    state.streak = 0;
+  }
+
+  state.results.push({ q, picked: pos === -1 ? -1 : state.shown[pos], right: isRight });
+
+  // mark tiles
+  [...$("answers").children].forEach((btn, i) => {
+    btn.disabled = true;
+    const mark = btn.querySelector(".mark");
+    if (i === correctPos) { btn.classList.add("right"); mark.textContent = "✓"; }
+    else if (i === pos) { btn.classList.add("wrong"); mark.textContent = "✗"; }
+    else btn.classList.add("dim");
+  });
+
+  $("scoreVal").textContent = state.score.toLocaleString();
+  $("streakChip").textContent = "🔥 " + state.streak;
+
+  const head = $("fbHead");
+  head.className = "fb-head " + (isRight ? "ok" : "bad");
+  head.innerHTML = isRight
+    ? '<span>✓ Correct!</span><span class="pts">+' + pts.toLocaleString() + "</span>"
+    : '<span>' + (pos === -1 ? "⏰ Time's up!" : "✗ Not quite") + '</span><span class="pts">+0</span>';
+  $("correctLine").innerHTML = isRight ? "" : "Correct answer: " +
+    (q.codeOpts ? "<code>" + esc(q.opts[q.a]).replace(/\n/g, " ") + "</code>" : inlineCode(q.opts[q.a]));
+  $("correctLine").style.display = isRight ? "none" : "block";
+  $("expText").innerHTML = inlineCode(q.exp);
+  $("nextBtn").textContent = state.idx === state.queue.length - 1 ? "See results" : "Next";
+  $("feedback").classList.add("show");
+  $("progressFill").style.width = ((state.idx + 1) / state.queue.length * 100) + "%";
+  setTimeout(() => {
+    $("feedback").scrollIntoView({ behavior: "smooth", block: "nearest" });
+    $("nextBtn").focus({ preventScroll: true });
+  }, 60);
+}
+
+function next() {
+  if (!state.locked) return;
+  if (state.idx < state.queue.length - 1) {
+    state.idx++;
+    renderQuestion();
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  } else {
+    showSummary();
+  }
+}
+$("nextBtn").onclick = next;
+$("quitBtn").onclick = () => {
+  clearInterval(state.tick);
+  if (state.results.length === 0 || confirm("Quit this round and see results so far?")) {
+    if (state.results.length) showSummary(); else { show("home"); buildHome(); }
+  }
+};
+
+document.addEventListener("keydown", e => {
+  if (!$("game").classList.contains("active")) return;
+  if (!state.locked && ["1", "2", "3", "4"].includes(e.key)) {
+    choose(Number(e.key) - 1);
+  } else if (state.locked && (e.key === "Enter" || e.key === " ")) {
+    e.preventDefault();
+    next();
+  }
+});
+
+/* =========================================================
+   SUMMARY
+   ========================================================= */
+function showSummary() {
+  clearInterval(state.tick);
+  const total = state.results.length;
+  const correct = state.results.filter(r => r.right).length;
+  const acc = total ? Math.round(correct / total * 100) : 0;
+
+  let msg = "Keep practicing!", trophy = "💪";
+  if (acc >= 90) { msg = "AP-ready legend!"; trophy = "🏆"; }
+  else if (acc >= 75) { msg = "Strong work!"; trophy = "🥈"; }
+  else if (acc >= 60) { msg = "Getting there!"; trophy = "🥉"; }
+
+  $("trophy").textContent = trophy;
+  $("rankMsg").textContent = msg;
+  $("finalScore").textContent = state.score.toLocaleString();
+  $("finalLine").textContent = correct + " of " + total + " correct";
+  $("stCorrect").textContent = correct + "/" + total;
+  $("stAcc").textContent = acc + "%";
+  $("stStreak").textContent = state.bestStreak;
+
+  // by section
+  const bd = $("secBreakdown");
+  bd.innerHTML = "";
+  SECTIONS.forEach(sec => {
+    const rs = state.results.filter(r => r.q.s === sec.id);
+    if (!rs.length) return;
+    const c = rs.filter(r => r.right).length;
+    const pct = Math.round(c / rs.length * 100);
+    bd.insertAdjacentHTML("beforeend",
+      '<div class="sec-row"><div class="top"><span>' + sec.code + " " + sec.name +
+      "</span><span>" + c + "/" + rs.length + " (" + pct + '%)</span></div>' +
+      '<div class="track"><div class="fill" style="width:' + pct + "%;background:" + sec.color + '"></div></div></div>');
+  });
+
+  // missed
+  const missed = state.results.filter(r => !r.right);
+  const ml = $("missedList");
+  ml.innerHTML = "";
+  if (!missed.length) {
+    ml.innerHTML = '<p class="empty">No missed questions. Perfect round!</p>';
+  } else {
+    missed.forEach((r, i) => {
+      const q = r.q;
+      const fmt = idx => idx === -1 ? "No answer (time ran out)"
+        : q.codeOpts ? "<code>" + esc(q.opts[idx]).replace(/\n/g, " ") + "</code>" : inlineCode(q.opts[idx]);
+      ml.insertAdjacentHTML("beforeend",
+        "<details><summary>" + secOf(q.s).code + " · " + inlineCode(q.q) + "</summary>" +
+        '<div class="r-body">' + (q.code ? codeBlock(q.code) : "") +
+        '<p><span class="yours">Your answer:</span> ' + fmt(r.picked) + "</p>" +
+        '<p><span class="theirs">Correct:</span> ' + fmt(q.a) + "</p>" +
+        "<p>" + inlineCode(q.exp) + "</p></div></details>");
+    });
+  }
+  $("retryBtn").style.display = missed.length ? "" : "none";
+  $("againBtn").textContent = state.size === 0 ? "Play again" : "Next " + state.size + " questions";
+  show("summary");
+}
+
+$("retryBtn").onclick = () => {
+  const missedQs = state.results.filter(r => !r.right).map(r => r.q);
+  if (missedQs.length) startGame(missedQs);
+};
+$("homeBtn").onclick = () => { show("home"); buildHome(); };
+$("againBtn").onclick = () => { $("startBtn").click(); };
+
+buildHome();
+</script>
+</body>
+</html>
