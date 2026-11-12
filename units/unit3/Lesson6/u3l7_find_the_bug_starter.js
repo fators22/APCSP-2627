@@ -1,17 +1,22 @@
 // AP CSP - Unit 3, Lesson 7 : FIND THE BUG  -  STARTER
 //
-// Each function below has ONE bug. The code runs, but the picture is wrong.
+// Each function below has a bug. The code runs, but the picture is wrong.
+//
+// BUG GROUPS (Tackle them in order!):
+//   GROUP 1 (Boundary & Update):  Bug 1 & Bug 5 — Control when a while loop stops.
+//   GROUP 2 (Invisible Execution): Bug 2 & Bug 3 — Loop runs, but overwrites itself.
+//   GROUP 3 (Grid & Syntax Traps): Bug 4 & Bug 6 — Nested coordinates & punctuation.
 //
 // HOW TO WORK
 //   1. Run the sketch. Look at each panel. What did you EXPECT to see?
-//   2. Read the hint for that bug. Trace the loop on paper if you need to.
+//   2. Check the Group & Hint for that bug. Trace the loop on paper if needed.
 //   3. Fix ONE bug at a time. Run again. Change as little as possible.
 //   4. Write a one-line comment above each fix explaining what was wrong.
 //
 // Every loop has 3 parts. Most bugs live in one of them:
-//   START   (where the variable begins)
+//   START    (where the variable begins)
 //   QUESTION (when the loop keeps going)
-//   UPDATE  (how the variable changes each time)
+//   UPDATE   (how the variable changes each time)
 // ...plus the BODY (what happens each time through).
 
 let stars = 0;
@@ -36,8 +41,8 @@ function draw() {
 }
 
 
-// BUG 1: LIGHTS
-// Expected: a bulb hanging at every 40 px along the whole wire.
+// BUG 1: LIGHTS  [GROUP 1: Boundary & Update]
+// Expected: a bulb hanging at every 40 px along the whole wire (9 bulbs total).
 // Hint: Look at the QUESTION. Trace x: 40, 80, 120 ... What happens when x is 360?
 function bug1Lights() {
   stroke(170); strokeWeight(2);
@@ -52,8 +57,8 @@ function bug1Lights() {
 }
 
 
-// BUG 2: LANES
-// Expected: 4 stacked lanes, each a different shade of gray.
+// BUG 2: LANES  [GROUP 2: Invisible Execution]
+// Expected: 4 stacked lanes, each a different shade of gray, 60 px apart.
 // Hint: The loop runs 4 times, but you only see one lane. Look at the BODY.
 //       Which values change each time through? Which ones never do?
 function bug2Lanes() {
@@ -65,9 +70,9 @@ function bug2Lanes() {
 }
 
 
-// BUG 3: STARS
-// Expected: the label shows how many stars were drawn.
-// Hint: Count the circles in the loop. Now read the label.
+// BUG 3: STARS  [GROUP 2: Invisible Execution]
+// Expected: 50 stars drawn, and the label shows "stars 50".
+// Hint: Count the circles in the loop. Now read the label ("stars 1").
 //       Find every line that changes stars. How many times does each one run?
 function bug3Stars() {
   randomSeed(9);
@@ -83,8 +88,8 @@ function bug3Stars() {
 }
 
 
-// BUG 4: WINDOW
-// Expected: a window with 4 panes across and 3 panes down, inside the panel.
+// BUG 4: WINDOW  [GROUP 3: Grid & Syntax Traps]
+// Expected: a window with 4 panes across and 3 panes down (12 panes total).
 // Hint: Look at the BODY. Moving across = x. Moving down = y.
 //       Which loop variable counts rows? Which counts columns? Which one is in x?
 function bug4Window() {
@@ -98,7 +103,7 @@ function bug4Window() {
 }
 
 
-// BUG 5: SNOW   (fix this BEFORE you turn it on in draw)
+// BUG 5: SNOW  [GROUP 1: Boundary & Update]  (Fix BEFORE turning on in draw!)
 // Expected: 100 snowflakes scattered over the whole canvas.
 // Hint: Trace flakes on paper. What is it after 1 pass? After 2? After 10?
 //       Will the QUESTION ever become false? Which of the 3 parts is missing?
@@ -111,23 +116,24 @@ function bug5Snow() {
 }
 
 
-
-// BUG 6: TREES
-// Expected: 6 trees, and the label says "trees 6".
-// Hint: The loop says 6, the label says 1. Every line inside the braces
-//       looks correct. Read the for line slowly, one character at a time.
+// BUG 6: TREES  [GROUP 3: Grid & Syntax Traps — Boss Challenge]
+// Expected: 6 trees drawn, and the label says "trees 6".
+// Hint: There are 3 issues to untangle here!
+//       1. Read the for(...) line slowly, one character at a time.
+//       2. Notice how x and y are calculated, then check if drawTree() moves there.
 function bug6Trees() {
   trees = 0;
-  for (let t = 0; t < 6; t++);{
+  for (let t = 0; t < 6; t++); {
     trees = trees + 1;
-    let x=480 + t%4 * 75;
-    let y=420 + t%3 * 75;
+    let x = 480 + t % 4 * 75;
+    let y = 420 + t % 3 * 75;
     drawTree();
   }
   fill(255);
   textSize(16);
   text("trees " + trees, 700, 330);
 }
+
 function drawTree() {
   fill(120, 80, 40);
   rect(-10, -60, 15, 40);   // trunk
@@ -148,10 +154,10 @@ function drawPanels() {
   noStroke();
   fill(242, 183, 5);
   textSize(14);
-  text("BUG 1  lights", 12, 22);
-  text("BUG 2  lanes", 412, 22);
-  text("BUG 3  stars", 12, 322);
-  text("BUG 4  window", 412, 322);
+  text("BUG 1  lights [G1]", 12, 22);
+  text("BUG 2  lanes  [G2]", 412, 22);
+  text("BUG 3  stars  [G2]", 12, 322);
+  text("BUG 4  window [G3]", 412, 322);
 }
 
 
