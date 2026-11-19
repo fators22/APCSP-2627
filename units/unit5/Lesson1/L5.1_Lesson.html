@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lesson 5.1: Organizing Code with Functions</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Lexend:wght@400;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  color-scheme: light;
+  --bg: #ffffff;
+  --panel: #f3f3f3;
+  --panel-edge: #d6d6d6;
+  --text: #121212;
+  --muted: #555555;
+  --gold: #8c6a00;
+  --gold-fill: #f2b705;
+  --on-gold: #000000;
+  --code-bg: #1c1c1c;
+  --code-text: #f5f5f5;
+  --code-comment: #9e9e9e;
+  --code-hl: #4a3b00;
+  --ok: #1e7b3a;
+  --bad: #b3261e;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    color-scheme: dark;
+    --bg: #000000;
+    --panel: #1c1c1c;
+    --panel-edge: #333333;
+    --text: #ffffff;
+    --muted: #b5b5b5;
+    --gold: #f2b705;
+    --gold-fill: #f2b705;
+    --on-gold: #000000;
+    --code-bg: #141414;
+    --code-text: #f5f5f5;
+    --code-comment: #8a8a8a;
+    --code-hl: #4a3b00;
+    --ok: #5ccf7c;
+    --bad: #ff7b72;
+  }
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: "Lexend", "Segoe UI", Arial, sans-serif;
+  font-size: 1.125rem;
+  line-height: 1.6;
+}
+main { max-width: 980px; margin: 0 auto; padding: 2.5rem 1.25rem 4rem; }
+h1 { font-size: clamp(2rem, 5vw, 3rem); line-height: 1.15; margin: 0 0 .5rem; }
+h2 { font-size: 1.75rem; color: var(--gold); margin: 0 0 .75rem; }
+p { max-width: 68ch; margin: 0 0 1rem; }
+section { padding: 2.5rem 0; border-top: 1px solid var(--panel-edge); }
+section:first-of-type { border-top: 0; }
+code, pre, .mono { font-family: "JetBrains Mono", "Courier New", monospace; }
+pre {
+  background: var(--code-bg);
+  color: var(--code-text);
+  border-radius: 10px;
+  padding: 1rem 1.25rem;
+  overflow-x: auto;
+  font-size: 1rem;
+  line-height: 1.55;
+  margin: 0 0 1rem;
+}
+pre .c { color: var(--code-comment); }
+pre .ln { display: block; padding: 0 .4rem; margin: 0 -.4rem; border-radius: 4px; }
+pre .ln.on { background: var(--code-hl); outline: 2px solid var(--gold-fill); }
+.inline { background: var(--panel); padding: .05rem .35rem; border-radius: 4px; font-size: .95em; }
+button {
+  font: inherit;
+  font-weight: 600;
+  background: var(--gold-fill);
+  color: var(--on-gold);
+  border: 0;
+  border-radius: 8px;
+  padding: .6rem 1.1rem;
+  cursor: pointer;
+}
+button.ghost { background: transparent; color: var(--text); border: 2px solid var(--panel-edge); }
+button:focus-visible, .opt:focus-visible { outline: 3px solid var(--gold-fill); outline-offset: 2px; }
+.row { display: flex; gap: 1.5rem; flex-wrap: wrap; align-items: flex-start; }
+.row > * { flex: 1 1 300px; min-width: 0; }
+.hero { display: grid; grid-template-columns: 1.1fr 1fr; gap: 2rem; align-items: center; }
+@media (max-width: 760px) { .hero { grid-template-columns: 1fr; } }
+canvas { width: 100%; height: auto; display: block; border-radius: 10px; background: #f0f0f0; }
+.console {
+  background: var(--code-bg); color: var(--code-text); border-radius: 10px; padding: .75rem 1rem; min-height: 7rem;
+  font-family: "JetBrains Mono", monospace; font-size: 1rem; white-space: pre-wrap;
+}
+.console .label { color: var(--code-comment); }
+.toggle { display: inline-flex; border: 2px solid var(--panel-edge); border-radius: 10px; overflow: hidden; margin-bottom: 1rem; }
+.toggle button { border-radius: 0; background: transparent; color: var(--text); }
+.toggle button[aria-pressed="true"] { background: var(--gold-fill); color: var(--on-gold); }
+table { border-collapse: collapse; width: 100%; font-size: 1.05rem; }
+th, td { border: 1px solid var(--panel-edge); padding: .45rem; text-align: center; }
+th { background: var(--gold-fill); color: var(--on-gold); }
+tr.now td { outline: 3px solid var(--gold-fill); outline-offset: -3px; }
+.quiz { display: grid; gap: 1.5rem; }
+.q { background: var(--panel); border-radius: 12px; padding: 1.25rem; }
+.q pre { margin-top: .5rem; }
+.opts { display: grid; gap: .5rem; }
+.opt {
+  text-align: left; background: var(--bg); color: var(--text); border: 2px solid var(--panel-edge);
+  font-weight: 400; padding: .6rem .9rem;
+}
+.opt.right { border-color: var(--ok); }
+.opt.wrong { border-color: var(--bad); }
+.fb { margin: .6rem 0 0; font-weight: 600; min-height: 1.6em; }
+.fb.ok { color: var(--ok); }
+.fb.no { color: var(--bad); }
+.score { font-size: 1.25rem; font-weight: 700; color: var(--gold); }
+.note { color: var(--muted); font-size: 1rem; }
+@media (prefers-reduced-motion: no-preference) {
+  .flash { animation: flash .35s ease-out; }
+  @keyframes flash { from { filter: brightness(1.6); } to { filter: none; } }
+}
+</style>
+</head>
+<body>
+<main>
+
+<section class="hero" aria-labelledby="t">
+  <div>
+    <p class="note">AP CSP Unit 5, Lesson 5.1</p>
+    <h1 id="t">Organizing code with functions</h1>
+    <p>This is the board you are building today. Press any key, or the button, to call <code class="inline">randomColor()</code>.</p>
+    <button id="heroBtn">Call randomColor()</button>
+    <p class="note mono" id="heroRGB" aria-live="polite"></p>
+  </div>
+  <canvas id="hero" width="800" height="600" aria-label="Color Sleuth board: four buttons in a 2 by 2 grid with player scores"></canvas>
+</section>
+
+<section aria-labelledby="s1">
+  <h2 id="s1">1. Define vs. call</h2>
+  <p>Defining a function writes the recipe. Nothing runs. Calling it runs the code inside, every time.</p>
+  <div class="row">
+    <div>
+<pre><span class="c">// define (once)</span>
+function sayHi() {
+  console.log("Hi!");
+}</pre>
+      <button id="callBtn">Call sayHi();</button>
+      <button class="ghost" id="clearBtn">Clear</button>
+    </div>
+    <div>
+      <div class="console" id="out" aria-live="polite"><span class="label">console</span></div>
+      <p class="note" id="callCount">Calls so far: 0</p>
+    </div>
+  </div>
+</section>
+
+<section aria-labelledby="s2">
+  <h2 id="s2">2. Procedural abstraction</h2>
+  <p>Both versions draw the same thing. Which <code class="inline">draw()</code> can you understand in two seconds?</p>
+  <div class="toggle" role="group" aria-label="Choose version">
+    <button aria-pressed="true" id="vBefore">Before</button>
+    <button aria-pressed="false" id="vAfter">After</button>
+  </div>
+<pre id="absCode"></pre>
+  <p id="absNote"></p>
+</section>
+
+<section aria-labelledby="s3">
+  <h2 id="s3">3. Step through the nested loop</h2>
+  <p>Press Step to run one pass of the inner loop. Watch which line runs, which button is drawn, and how x and y are calculated.</p>
+  <div class="row">
+    <div>
+<pre id="loopCode"></pre>
+      <button id="stepBtn">Step</button>
+      <button class="ghost" id="resetBtn">Start over</button>
+      <p class="note" id="stepMsg" aria-live="polite">row and col have not started yet.</p>
+    </div>
+    <div>
+      <canvas id="loopCanvas" width="800" height="600" aria-label="Buttons drawn so far by the nested loop"></canvas>
+      <table aria-label="Loop trace">
+        <thead><tr><th>row</th><th>col</th><th>x</th><th>y</th><th>button</th></tr></thead>
+        <tbody id="trace"></tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<section aria-labelledby="s4">
+  <h2 id="s4">4. Quick check</h2>
+  <p>Pick an answer. You get feedback right away.</p>
+  <div class="quiz" id="quiz"></div>
+  <p class="score" id="score" aria-live="polite"></p>
+</section>
+
+</main>
+<script>
+// ---------- shared drawing ----------
+function drawBoardOn(ctx, color, count) {
+  ctx.fillStyle = "#f0f0f0";
+  ctx.fillRect(0, 0, 800, 600);
+  let n = 0;
+  for (let row = 0; row < 2; row++) {
+    for (let col = 0; col < 2; col++) {
+      if (n >= count) return;
+      ctx.fillStyle = color;
+      ctx.fillRect(180 + col * 240, 50 + row * 240, 200, 200);
+      ctx.fillStyle = "rgba(255,255,255,.85)";
+      ctx.font = "bold 44px Lexend, Arial";
+      ctx.textAlign = "center";
+      ctx.fillText(String(n + 1), 280 + col * 240, 165 + row * 240);
+      n++;
+    }
+  }
+}
+function drawScoresOn(ctx) {
+  ctx.fillStyle = "#000";
+  ctx.font = "28px Lexend, Arial";
+  ctx.textAlign = "center";
+  ctx.fillText("Player 1: 0", 280, 550);
+  ctx.fillText("Player 2: 0", 520, 550);
+}
+
+// ---------- hero ----------
+const hero = document.getElementById("hero").getContext("2d");
+let r, g, b;
+function randomColor() {
+  r = Math.floor(Math.random() * 226);
+  g = Math.floor(Math.random() * 226);
+  b = Math.floor(Math.random() * 226);
+  drawBoardOn(hero, `rgb(${r},${g},${b})`, 4);
+  drawScoresOn(hero);
+  document.getElementById("heroRGB").textContent = `r = ${r}, g = ${g}, b = ${b}`;
+  const c = document.getElementById("hero");
+  c.classList.remove("flash"); void c.offsetWidth; c.classList.add("flash");
+}
+randomColor();
+document.getElementById("heroBtn").addEventListener("click", randomColor);
+document.addEventListener("keydown", (e) => {
+  if (e.target.closest("button")) return;
+  if (e.key.length === 1) randomColor();
+});
+
+// ---------- define vs call ----------
+let calls = 0;
+const out = document.getElementById("out");
+document.getElementById("callBtn").addEventListener("click", () => {
+  calls++;
+  out.append("\nHi!");
+  document.getElementById("callCount").textContent = "Calls so far: " + calls;
+});
+document.getElementById("clearBtn").addEventListener("click", () => {
+  calls = 0;
+  out.innerHTML = '<span class="label">console</span>';
+  document.getElementById("callCount").textContent = "Calls so far: 0";
+});
+
+// ---------- abstraction toggle ----------
+const esc = (s) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;");
+function codeHTML(lines) {
+  return lines.map((l, i) => `<span class="ln${l.trim().startsWith("//") ? " c" : ""}" data-i="${i}">${esc(l) || " "}</span>`).join("");
+}
+const before = ["function draw() {", "  background(240);", "  noStroke();", "  fill(r, g, b);", "  rect(180, 50, 200, 200);", "  rect(420, 50, 200, 200);", "  rect(180, 290, 200, 200);", "  rect(420, 290, 200, 200);", "  fill(0);", "  textSize(28);", "  textAlign(CENTER);", "  text(\"Player 1: \" + p1Score, 280, 540);", "  text(\"Player 2: \" + p2Score, 520, 540);", "}"];
+const after = ["function draw() {", "  background(240);", "  drawBoard();", "  drawScores();", "}", "", "// the details now live inside drawBoard() and drawScores()"];
+const absCode = document.getElementById("absCode"), absNote = document.getElementById("absNote");
+function showAbs(isAfter) {
+  absCode.innerHTML = codeHTML(isAfter ? after : before);
+  absNote.textContent = isAfter
+    ? "draw() now reads like a list of steps: clear the screen, draw the board, draw the scores. That is procedural abstraction: name a chunk of code, then use the name."
+    : "14 lines, and you have to read every one to figure out what is being drawn.";
+  document.getElementById("vBefore").setAttribute("aria-pressed", String(!isAfter));
+  document.getElementById("vAfter").setAttribute("aria-pressed", String(isAfter));
+}
+document.getElementById("vBefore").addEventListener("click", () => showAbs(false));
+document.getElementById("vAfter").addEventListener("click", () => showAbs(true));
+showAbs(false);
+
+// ---------- loop stepper ----------
+const loopLines = ["function drawBoard() {", "  noStroke();", "  fill(r, g, b);", "  for (let row = 0; row < 2; row++) {", "    for (let col = 0; col < 2; col++) {", "      rect(180 + col * 240, 50 + row * 240, 200, 200);", "    }", "  }", "}"];
+const loopCode = document.getElementById("loopCode");
+loopCode.innerHTML = codeHTML(loopLines);
+const lctx = document.getElementById("loopCanvas").getContext("2d");
+const trace = document.getElementById("trace");
+let step = 0;
+function renderLoop() {
+  drawBoardOn(lctx, "#3a6aa8", step);
+  loopCode.querySelectorAll(".ln").forEach((el) => el.classList.toggle("on", step > 0 && step <= 4 && el.dataset.i === "5"));
+  trace.innerHTML = "";
+  for (let i = 0; i < 4; i++) {
+    const row = Math.floor(i / 2), col = i % 2;
+    const tr = document.createElement("tr");
+    if (i < step) tr.innerHTML = `<td>${row}</td><td>${col}</td><td>${180 + col * 240}</td><td>${50 + row * 240}</td><td>${i + 1}</td>`;
+    else tr.innerHTML = "<td></td><td></td><td></td><td></td><td></td>";
+    if (i === step - 1) tr.className = "now";
+    trace.appendChild(tr);
+  }
+  const msg = document.getElementById("stepMsg");
+  if (step === 0) msg.textContent = "row and col have not started yet.";
+  else if (step <= 4) {
+    const i = step - 1, row = Math.floor(i / 2), col = i % 2;
+    msg.textContent = `row = ${row}, col = ${col}: x = 180 + ${col} * 240 = ${180 + col * 240}, y = 50 + ${row} * 240 = ${50 + row * 240}. Button ${step} drawn.` +
+      (col === 1 && row === 0 ? " The inner loop is done, so row goes up to 1 and col starts over at 0." : "") +
+      (step === 4 ? " Both loops are done." : "");
+  }
+  document.getElementById("stepBtn").disabled = step >= 4;
+}
+document.getElementById("stepBtn").addEventListener("click", () => { if (step < 4) { step++; renderLoop(); } });
+document.getElementById("resetBtn").addEventListener("click", () => { step = 0; renderLoop(); });
+renderLoop();
+
+// ---------- quiz ----------
+const questions = [
+  { q: "Goal: pressing any key changes the color. What is wrong?", code: ["function keyPressed() {", "  randomColor;", "}"],
+    opts: ["Nothing, it works", "The call is missing ( ), so randomColor never runs", "keyPressed should be inside draw()", "randomColor must have a parameter"], a: 1,
+    why: "A call needs parentheses. Without them, the function name is just mentioned, not run." },
+  { q: "The buttons never show up. Why?", code: ["function draw() {", "  background(240);", "  drawScores();", "}", "", "function drawBoard() {", "  fill(r, g, b);", "  rect(180, 50, 200, 200);", "}"],
+    opts: ["drawBoard() is defined but never called", "fill() needs four numbers", "background() erases the buttons", "drawScores() must come first"], a: 0,
+    why: "Defining a function does nothing until it is called. Add drawBoard(); inside draw()." },
+  { q: "What is printed?", code: ["function setup() {", "  console.log(\"A\");", "  stepOne();", "  console.log(\"C\");", "}", "function stepOne() {", "  console.log(\"B\");", "}"],
+    opts: ["A C B", "A B C", "B A C", "A C"], a: 1,
+    why: "When stepOne() is called, it runs completely (prints B), then setup() picks up where it left off (prints C)." },
+  { q: "randomColor() is called inside draw(). What happens?", code: ["function draw() {", "  background(240);", "  randomColor();", "  drawBoard();", "}"],
+    opts: ["Color changes once", "Error: function not defined", "Colors flash about 60 times a second", "Nothing is drawn"], a: 2,
+    why: "draw() runs about 60 times a second, so a new color is picked every frame." },
+  { q: "In drawBoard(), what is x for the button with row = 1, col = 1?", code: ["rect(180 + col * 240, 50 + row * 240, 200, 200);"],
+    opts: ["180", "240", "420", "290"], a: 2,
+    why: "x = 180 + 1 * 240 = 420. (y would be 50 + 1 * 240 = 290.)" },
+];
+const quiz = document.getElementById("quiz");
+let answered = 0, right = 0;
+questions.forEach((item, qi) => {
+  const box = document.createElement("div");
+  box.className = "q";
+  box.innerHTML = `<p><strong>${qi + 1}.</strong> ${esc(item.q)}</p><pre>${codeHTML(item.code)}</pre><div class="opts"></div><p class="fb" aria-live="polite"></p>`;
+  const opts = box.querySelector(".opts"), fb = box.querySelector(".fb");
+  item.opts.forEach((o, oi) => {
+    const btn = document.createElement("button");
+    btn.className = "opt";
+    btn.textContent = o;
+    btn.addEventListener("click", () => {
+      if (box.dataset.done) return;
+      box.dataset.done = "1";
+      answered++;
+      const ok = oi === item.a;
+      if (ok) right++;
+      btn.classList.add(ok ? "right" : "wrong");
+      opts.children[item.a].classList.add("right");
+      fb.className = "fb " + (ok ? "ok" : "no");
+      fb.textContent = (ok ? "Correct. " : "Not quite. ") + item.why;
+      if (answered === questions.length) document.getElementById("score").textContent = `Score: ${right} / ${questions.length}`;
+    });
+    opts.appendChild(btn);
+  });
+  quiz.appendChild(box);
+});
+</script>
+</body>
+</html>
